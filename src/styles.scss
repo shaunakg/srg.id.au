@@ -767,7 +767,6 @@ p.about {
 .project-showcase {
     --project-showcase-gap: clamp(32px, 5vw, 84px);
     --project-main-width: min(65ch, 100%);
-    --project-rail-width: clamp(180px, 17vw, 260px);
 
     position: relative;
     display: grid;
@@ -779,8 +778,22 @@ p.about {
     align-items: start;
     width: 100vw;
     box-sizing: border-box;
-    margin: 0 calc(50% - 50vw) 1.8rem;
     padding: 0 20px;
+    --project-rail-width: clamp(180px, 17vw, 260px);
+
+    margin: 0 calc(50% - 50vw) 1.8rem;
+}
+
+.recent-post-preview {
+    --recent-post-preview-gap: clamp(36px, 4vw, 60px);
+    --project-rail-width: clamp(200px, 17vw, 264px);
+
+    position: relative;
+}
+
+.recent-post-preview-copy.about {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
 }
 
 .project-gallery {
@@ -902,7 +915,6 @@ p.about {
     pointer-events: none;
     transition:
         opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
         visibility 0.24s ease;
 
     &.is-left {
@@ -911,7 +923,6 @@ p.about {
             calc(50% - (var(--project-main-width) / 2) - var(--project-showcase-gap) - var(--project-rail-width))
         );
         text-align: left;
-        transform: translateX(-14px);
     }
 
     &.is-right {
@@ -920,7 +931,6 @@ p.about {
             calc(50% - (var(--project-main-width) / 2) - var(--project-showcase-gap) - var(--project-rail-width))
         );
         text-align: left;
-        transform: translateX(14px);
     }
 
     &.is-empty {
@@ -933,17 +943,6 @@ p.about {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
-        transform: translateX(0);
-    }
-
-    &.is-side-switching {
-        transition: opacity 0.16s ease, visibility 0.16s ease;
-    }
-
-    &.is-side-switching.is-left,
-    &.is-side-switching.is-right,
-    &.is-side-switching:not(.is-empty) {
-        transform: translateX(0);
     }
 }
 
@@ -951,14 +950,10 @@ p.about {
     min-height: 0;
     padding: 0;
     opacity: 1;
-    transform: translateY(0);
-    transition:
-        opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 
     &.is-swapping {
         opacity: 0;
-        transform: translateY(8px);
     }
 }
 
@@ -990,6 +985,58 @@ p.about {
     overflow-wrap: anywhere;
 }
 
+.recent-post-detail-content {
+    max-width: 100%;
+}
+
+.recent-post-detail-panel {
+    width: min(100%, var(--project-rail-width));
+
+    &.is-left {
+        left: auto;
+        right: calc(100% + var(--recent-post-preview-gap));
+    }
+
+    &.is-right {
+        left: calc(100% + var(--recent-post-preview-gap));
+        right: auto;
+    }
+}
+
+.recent-post-detail-media {
+    aspect-ratio: 1200 / 630;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #f3efe9;
+    border: 1px solid rgba(122, 90, 61, 0.12);
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border: none;
+        object-fit: cover;
+        object-position: center;
+    }
+}
+
+.recent-post-detail-title {
+    margin-top: 0;
+    font-size: clamp(1.12rem, 0.96rem + 0.42vw, 1.45rem);
+    line-height: 1;
+}
+
+.recent-post-detail-title.has-media {
+    margin-top: 0.9rem;
+}
+
+.recent-post-detail-summary {
+    margin-top: 0.55rem;
+    font-size: 0.84rem;
+    line-height: 1.48;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .project-detail-content {
         transition: none;
@@ -999,7 +1046,7 @@ p.about {
 @media (max-width: 1080px) {
     .project-showcase {
         width: 100%;
-        margin: 0 0 1.8rem;
+        margin: 0;
         padding: 0;
         grid-template-columns: minmax(0, 1fr);
     }
@@ -1014,6 +1061,10 @@ p.about {
 
     .project-card-mobile-copy {
         display: block;
+    }
+
+    .project-showcase {
+        margin-bottom: 1.8rem;
     }
 }
 
@@ -2185,12 +2236,15 @@ body.footnote-modal-open {
 // Recent post loading styles
 .recent-post {
     font-weight: normal;
-    transition: all 0.3s ease;
 
     &.loading {
         display: inline-flex;
         align-items: center;
         vertical-align: baseline;
+    }
+
+    &.is-active {
+        text-decoration: none;
     }
 }
 

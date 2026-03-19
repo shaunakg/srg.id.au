@@ -1,0 +1,238 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  ogImage?: string | null;
+  ogImageAlt?: string;
+  external?: boolean;
+  archiveHref?: string;
+}
+
+const {
+  href,
+  title,
+  description,
+  ogImage,
+  ogImageAlt,
+  external = false,
+  archiveHref = '/posts/',
+} = Astro.props;
+---
+
+<div class="recent-post-preview" data-recent-post-preview>
+  <p class="about recent-post-preview-copy">
+    Recently I wrote about{' '}
+    <a
+      class="recent-post"
+      data-recent-post-link
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
+      {title}
+      {external ? <span class="sr-only"> Opens in a new tab.</span> : null}
+    </a>{' '}
+    — <a href={archiveHref}>see all my writing</a>.
+  </p>
+
+  <aside
+    class="project-detail-panel recent-post-detail-panel is-right is-empty"
+    data-recent-post-panel
+    aria-hidden="true"
+  >
+    <div class="project-detail-content recent-post-detail-content">
+      {ogImage ? (
+        <div class="recent-post-detail-media">
+          <img src={ogImage} alt={ogImageAlt ?? title} loading="lazy" decoding="async" />
+        </div>
+      ) : null}
+      <h3 class:list={['project-detail-title', 'recent-post-detail-title', ogImage && 'has-media']}>{title}</h3>
+      {description ? <p class="project-detail-summary recent-post-detail-summary">{description}</p> : null}
+    </div>
+  </aside>
+</div>
+
+<script is:inline data-astro-rerun>
+  (() => {
+    if (window.__recentPostPreviewBootstrapped) return;
+    window.__recentPostPreviewBootstrapped = true;
+
+    const PREVIEW_SELECTOR = '[data-recent-post-preview]';
+
+    const clearPreviewTimers = (root) => {
+      if (root.__recentPostCloseTimeout) {
+        window.clearTimeout(root.__recentPostCloseTimeout);
+        root.__recentPostCloseTimeout = null;
+      }
+
+      if (root.__recentPostCleanupTimeout) {
+        window.clearTimeout(root.__recentPostCleanupTimeout);
+        root.__recentPostCleanupTimeout = null;
+      }
+    };
+
+    const resetPreview = (root) => {
+      const panel = root.__recentPostPanel;
+      const link = root.__recentPostLink;
+      if (!panel || !link) return;
+
+      clearPreviewTimers(root);
+      panel.classList.add('is-empty');
+      panel.setAttribute('aria-hidden', 'true');
+      panel.style.removeProperty('top');
+      link.classList.remove('is-active');
+      root.__recentPostVisible = false;
+    };
+
+    const destroyPreview = (root) => {
+      if (typeof root.__recentPostDestroy === 'function') {
+        root.__recentPostDestroy();
+      }
+    };
+
+    const setupPreview = (root) => {
+      if (!(root instanceof HTMLElement) || root.dataset.recentPostBound === 'true') return;
+
+      const link = root.querySelector('[data-recent-post-link]');
+      const panel = root.querySelector('[data-recent-post-panel]');
+      if (!(link instanceof HTMLAnchorElement) || !(panel instanceof HTMLElement)) return;
+
+      root.dataset.recentPostBound = 'true';
+      root.__recentPostLink = link;
+      root.__recentPostPanel = panel;
+      root.__recentPostVisible = false;
+      root.__recentPostCloseTimeout = null;
+      root.__recentPostCleanupTimeout = null;
+
+      const getPanelTop = () => {
+        const previewRect = root.getBoundingClientRect();
+        const linkRect = link.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const linkCenter = linkRect.top - previewRect.top + (linkRect.height / 2);
+        return Math.round(linkCenter - (panelRect.height / 2));
+      };
+
+      const getPreferredSide = (clientX) => {
+        const rect = link.getBoundingClientRect();
+        return clientX <= rect.left + rect.width / 2 ? 'left' : 'right';
+      };
+
+      const setPanelSide = (side) => {
+        panel.classList.remove('is-left', 'is-right');
+        panel.classList.add(`is-${side}`);
+        root.dataset.recentPostSide = side;
+      };
+
+      const showPreview = (clientX) => {
+        clearPreviewTimers(root);
+
+        if (!root.__recentPostVisible && typeof clientX === 'number') {
+          setPanelSide(getPreferredSide(clientX));
+        }
+
+        panel.style.top = `${getPanelTop()}px`;
+        panel.classList.remove('is-empty');
+        panel.setAttribute('aria-hidden', 'false');
+        link.classList.add('is-active');
+        root.__recentPostVisible = true;
+      };
+
+      const hidePreview = () => {
+        clearPreviewTimers(root);
+
+        root.__recentPostCloseTimeout = window.setTimeout(() => {
+          window.requestAnimationFrame(() => {
+            if (document.activeElement === link) return;
+            panel.classList.add('is-empty');
+            panel.setAttribute('aria-hidden', 'true');
+            link.classList.remove('is-active');
+            root.__recentPostVisible = false;
+          });
+          root.__recentPostCloseTimeout = null;
+
+          root.__recentPostCleanupTimeout = window.setTimeout(() => {
+            panel.style.removeProperty('top');
+            root.__recentPostCleanupTimeout = null;
+          }, 260);
+        }, 120);
+      };
+
+      const handlePointerEnter = (event) => {
+        if (event.pointerType !== 'touch') {
+          showPreview(event.clientX);
+        }
+      };
+
+      const handlePointerMove = (event) => {
+        if (event.pointerType !== 'touch') {
+          showPreview(event.clientX);
+        }
+      };
+
+      const handlePointerLeave = (event) => {
+        if (event.pointerType !== 'touch') {
+          hidePreview();
+        }
+      };
+
+      const handleFocus = () => {
+        showPreview();
+      };
+
+      const handleClick = () => {
+        resetPreview(root);
+      };
+
+      const handleResize = () => {
+        if (!root.__recentPostVisible) return;
+        panel.style.top = `${getPanelTop()}px`;
+      };
+
+      link.addEventListener('pointerenter', handlePointerEnter);
+      link.addEventListener('pointermove', handlePointerMove);
+      link.addEventListener('pointerleave', handlePointerLeave);
+      link.addEventListener('focus', handleFocus);
+      link.addEventListener('blur', hidePreview);
+      link.addEventListener('click', handleClick);
+      window.addEventListener('resize', handleResize);
+
+      let resizeObserver = null;
+      if ('ResizeObserver' in window) {
+        resizeObserver = new ResizeObserver(handleResize);
+        resizeObserver.observe(root);
+        resizeObserver.observe(link);
+      }
+
+      root.__recentPostDestroy = () => {
+        clearPreviewTimers(root);
+        link.removeEventListener('pointerenter', handlePointerEnter);
+        link.removeEventListener('pointermove', handlePointerMove);
+        link.removeEventListener('pointerleave', handlePointerLeave);
+        link.removeEventListener('focus', handleFocus);
+        link.removeEventListener('blur', hidePreview);
+        link.removeEventListener('click', handleClick);
+        window.removeEventListener('resize', handleResize);
+        resizeObserver?.disconnect();
+        resetPreview(root);
+        delete root.__recentPostDestroy;
+        delete root.__recentPostLink;
+        delete root.__recentPostPanel;
+      };
+    };
+
+    const initPreviews = () => {
+      document.querySelectorAll(PREVIEW_SELECTOR).forEach(setupPreview);
+    };
+
+    const teardownPreviews = () => {
+      document.querySelectorAll(PREVIEW_SELECTOR).forEach(destroyPreview);
+    };
+
+    document.addEventListener('astro:before-preparation', teardownPreviews);
+    document.addEventListener('astro:page-load', initPreviews);
+    window.addEventListener('pagehide', teardownPreviews);
+
+    initPreviews();
+  })();
+</script>

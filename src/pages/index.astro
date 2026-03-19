@@ -3,12 +3,23 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProfilePhoto from '../components/ProfilePhoto.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
+import RecentPostPreview from '../components/RecentPostPreview.astro';
 import { getKnownImageDimensions } from '../lib/image-metadata';
 import { getPostHref, getPublishedPosts, isExternalHref } from '../lib/posts';
 
 const [latestPost] = await getPublishedPosts();
 const latestPostHref = latestPost ? getPostHref(latestPost) : '/posts/';
 const latestPostIsExternal = isExternalHref(latestPostHref);
+const latestPostPreview = latestPost
+  ? {
+      href: latestPostHref,
+      title: latestPost.data.title,
+      description: latestPost.data.description,
+      ogImage: latestPost.data.ogImage ?? null,
+      ogImageAlt: latestPost.data.title,
+      external: latestPostIsExternal,
+    }
+  : null;
 const monashLogo = getKnownImageDimensions('/images/monash.svg')!;
 const latrobeLogo = getKnownImageDimensions('/images/latrobe.png')!;
 const jmssLogo = getKnownImageDimensions('/images/jmss-bw.webp')!;
@@ -33,15 +44,15 @@ const jmssLogo = getKnownImageDimensions('/images/jmss-bw.webp')!;
 
     <p class="about">
       Hi, I'm Shaunak! I'm super interested in the intersection of medicine with AI and robotics.
-      Recently I wrote about <a
-        class="recent-post"
-        href={latestPostHref}
-        target={latestPostIsExternal ? '_blank' : undefined}
-        rel={latestPostIsExternal ? 'noopener noreferrer' : undefined}
-      >
-        {latestPost?.data.title ?? 'my latest writing'}
-      </a> — <a href="/posts/">see all my writing</a>.
     </p>
+
+    {latestPostPreview ? (
+      <RecentPostPreview {...latestPostPreview} />
+    ) : (
+      <p class="about">
+        Recently I wrote about <a class="recent-post" href="/posts/">my latest writing</a> — <a href="/posts/">see all my writing</a>.
+      </p>
+    )}
   </div>
 
   <h2 id="education">Education</h2>

@@ -9,7 +9,7 @@ export const site = {
   domain: 'srg.id.au',
   newsletterEndpoint: '/api/subscribe',
   analyticsId: 'G-P80KQB5DMX',
-  utterancesRepo: 'shaunakg/portfolio-zola',
+  utterancesRepo: 'shaunakg/srg.id.au',
   defaultOgImage: '/og.png',
   ogImageService: 'https://og.srg.id.au/api/og',
 };
