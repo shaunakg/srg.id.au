@@ -811,7 +811,7 @@ p.about {
     text-decoration: none;
     background: transparent;
     opacity: 1;
-    transition: opacity 0.16s ease;
+    transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 
     &:hover,
     &:focus-visible {
@@ -900,7 +900,10 @@ p.about {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.16s ease, transform 0.22s ease, visibility 0.16s ease;
+    transition:
+        opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.24s ease;
 
     &.is-left {
         left: max(
@@ -908,7 +911,7 @@ p.about {
             calc(50% - (var(--project-main-width) / 2) - var(--project-showcase-gap) - var(--project-rail-width))
         );
         text-align: left;
-        transform: translateX(-8px);
+        transform: translateX(-14px);
     }
 
     &.is-right {
@@ -917,7 +920,7 @@ p.about {
             calc(50% - (var(--project-main-width) / 2) - var(--project-showcase-gap) - var(--project-rail-width))
         );
         text-align: left;
-        transform: translateX(8px);
+        transform: translateX(14px);
     }
 
     &.is-empty {
@@ -948,10 +951,14 @@ p.about {
     min-height: 0;
     padding: 0;
     opacity: 1;
-    transition: opacity 0.16s ease;
+    transform: translateY(0);
+    transition:
+        opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 
     &.is-swapping {
-        opacity: 0.22;
+        opacity: 0;
+        transform: translateY(8px);
     }
 }
 
@@ -962,7 +969,7 @@ p.about {
     text-transform: uppercase;
     color: $accent-color;
     text-wrap: balance;
-    transition: opacity 0.18s ease;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .project-detail-title {

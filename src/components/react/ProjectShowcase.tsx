@@ -22,26 +22,59 @@ type PanelSide = 'left' | 'right';
 export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
   const showcaseRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  const closeTimeoutRef = useRef<number | null>(null);
+  const closeCleanupTimeoutRef = useRef<number | null>(null);
+  const swapTimeoutRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [panelIndex, setPanelIndex] = useState<number | null>(null);
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
   const [panelSide, setPanelSide] = useState<PanelSide>('right');
   const [panelTop, setPanelTop] = useState(0);
 
-  const clearActiveCard = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      const showcase = showcaseRef.current;
-      if (showcase && showcase.contains(document.activeElement)) return;
-      setActiveIndex(null);
-    });
+  const clearTimers = useCallback(() => {
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    if (closeCleanupTimeoutRef.current !== null) {
+      window.clearTimeout(closeCleanupTimeoutRef.current);
+      closeCleanupTimeoutRef.current = null;
+    }
+    if (swapTimeoutRef.current !== null) {
+      window.clearTimeout(swapTimeoutRef.current);
+      swapTimeoutRef.current = null;
+    }
   }, []);
 
-  const updatePanelTop = useCallback((index: number) => {
+  const clearActiveCard = useCallback(() => {
+    clearTimers();
+
+    closeTimeoutRef.current = window.setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        const showcase = showcaseRef.current;
+        if (showcase && showcase.contains(document.activeElement)) return;
+        setIsSwapping(false);
+        setIsPanelVisible(false);
+        setActiveIndex(null);
+      });
+      closeTimeoutRef.current = null;
+
+      closeCleanupTimeoutRef.current = window.setTimeout(() => {
+        setPanelIndex(null);
+        closeCleanupTimeoutRef.current = null;
+      }, 260);
+    }, 120);
+  }, [clearTimers]);
+
+  const getPanelTop = useCallback((index: number) => {
     const showcase = showcaseRef.current;
     const card = cardRefs.current[index];
-    if (!showcase || !card) return;
+    if (!showcase || !card) return null;
 
     const showcaseRect = showcase.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
-    setPanelTop(Math.round(cardRect.top - showcaseRect.top));
+    return Math.round(cardRect.top - showcaseRect.top);
   }, []);
 
   const getPreferredSide = useCallback((index: number, clientX?: number): PanelSide => {
@@ -58,22 +91,71 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
 
   const activateCard = useCallback(
     (index: number, clientX?: number) => {
+      clearTimers();
+
       setActiveIndex(index);
-      setPanelSide(getPreferredSide(index, clientX));
-      updatePanelTop(index);
+      const nextPanelSide = getPreferredSide(index, clientX);
+      const nextPanelTop = getPanelTop(index);
+
+      if (panelIndex === null || !isPanelVisible) {
+        setPanelIndex(index);
+        setPanelSide(nextPanelSide);
+        if (nextPanelTop !== null) {
+          setPanelTop(nextPanelTop);
+        }
+        setIsPanelVisible(true);
+        setIsSwapping(false);
+        return;
+      }
+
+      setIsPanelVisible(true);
+
+      if (panelIndex === index) {
+        setPanelSide(nextPanelSide);
+        if (nextPanelTop !== null) {
+          setPanelTop(nextPanelTop);
+        }
+        setIsSwapping(false);
+        return;
+      }
+
+      setIsSwapping(true);
+      swapTimeoutRef.current = window.setTimeout(() => {
+        setPanelIndex(index);
+        setPanelSide(nextPanelSide);
+        const swappedPanelTop = getPanelTop(index);
+        if (swappedPanelTop !== null) {
+          setPanelTop(swappedPanelTop);
+        }
+        window.requestAnimationFrame(() => {
+          setIsSwapping(false);
+        });
+        swapTimeoutRef.current = null;
+      }, 110);
     },
-    [getPreferredSide, updatePanelTop],
+    [clearTimers, getPanelTop, getPreferredSide, isPanelVisible, panelIndex],
   );
 
   useEffect(() => {
-    if (activeIndex === null) return undefined;
+    return () => {
+      clearTimers();
+    };
+  }, [clearTimers]);
 
-    const handleResize = () => updatePanelTop(activeIndex);
+  useEffect(() => {
+    if (panelIndex === null) return undefined;
+
+    const handleResize = () => {
+      const nextPanelTop = getPanelTop(panelIndex);
+      if (nextPanelTop !== null) {
+        setPanelTop(nextPanelTop);
+      }
+    };
     window.addEventListener('resize', handleResize);
 
     const resizeObserver = new ResizeObserver(handleResize);
     const showcase = showcaseRef.current;
-    const card = cardRefs.current[activeIndex];
+    const card = cardRefs.current[panelIndex];
     if (showcase) resizeObserver.observe(showcase);
     if (card) resizeObserver.observe(card);
 
@@ -81,9 +163,10 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
       window.removeEventListener('resize', handleResize);
       resizeObserver.disconnect();
     };
-  }, [activeIndex, updatePanelTop]);
+  }, [getPanelTop, panelIndex]);
 
   const activeProject = activeIndex === null ? null : projects[activeIndex];
+  const panelProject = panelIndex === null ? null : projects[panelIndex];
 
   return (
     <div
@@ -98,16 +181,16 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
       <aside
         className={cx(
           'project-detail-panel',
-          activeProject ? `is-${panelSide}` : 'is-right',
-          !activeProject && 'is-empty',
+          panelProject ? `is-${panelSide}` : 'is-right',
+          !isPanelVisible && 'is-empty',
         )}
-        aria-hidden={activeProject ? 'false' : 'true'}
-        style={activeProject ? { top: `${panelTop}px` } : undefined}
+        aria-hidden={isPanelVisible && panelProject ? 'false' : 'true'}
+        style={panelProject ? { top: `${panelTop}px` } : undefined}
       >
-        <div className="project-detail-content">
-          <p className="project-detail-kicker mono">{activeProject?.kicker}</p>
-          <h3 className="project-detail-title">{activeProject?.title}</h3>
-          <p className="project-detail-summary">{activeProject?.summary}</p>
+        <div className={cx('project-detail-content', isSwapping && 'is-swapping')}>
+          <p className="project-detail-kicker mono">{panelProject?.kicker}</p>
+          <h3 className="project-detail-title">{panelProject?.title}</h3>
+          <p className="project-detail-summary">{panelProject?.summary}</p>
         </div>
       </aside>
 

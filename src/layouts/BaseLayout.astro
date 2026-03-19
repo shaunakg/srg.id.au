@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { ClientRouter, fade } from 'astro:transitions';
 import '../styles.scss';
 import { getKnownImageDimensions } from '../lib/image-metadata';
 import { buildPageMetadata } from '../lib/metadata';
@@ -95,6 +96,7 @@ const metadata = buildPageMetadata({
     <meta name="twitter:image" content={metadata.ogImage} />
     <meta name="twitter:image:alt" content={metadata.ogImageAlt} />
     {metadata.structuredData && <script is:inline type="application/ld+json" set:html={metadata.structuredData} />}
+    <ClientRouter />
 
     {import.meta.env.DEV && (
       <script type="module" is:inline>
@@ -114,7 +116,15 @@ const metadata = buildPageMetadata({
           window.dataLayer = window.dataLayer || [];
           function gtag(){window.dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', analyticsId);
+          gtag('config', analyticsId, { send_page_view: false });
+
+          document.addEventListener('astro:page-load', () => {
+            gtag('event', 'page_view', {
+              page_location: window.location.href,
+              page_path: window.location.pathname,
+              page_title: document.title,
+            });
+          });
         </script>
       </>
     )}
@@ -150,10 +160,12 @@ const metadata = buildPageMetadata({
         </div>
       </div>
 
-      <slot />
+      <main class="page-content" transition:name="page-content" transition:animate={fade({ duration: '0.18s' })}>
+        <slot />
+      </main>
     </div>
 
-    <footer class="page-footer" id="main-footer" style="--footer-gradient-height: 50%;">
+    <footer class="page-footer" id="main-footer" style="--footer-gradient-height: 50%;" transition:persist>
       <Image
         class="page-footer-image"
         src="/images/ormond.jpeg"
