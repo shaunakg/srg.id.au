@@ -1,0 +1,22 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  title?: string;
+  link?: string;
+  class?: string;
+  border?: number;
+}
+
+const { src, alt = '', title, link, class: className, border } = Astro.props;
+---
+
+<figure class={className}>
+  <a href={link ?? src}>
+    <img src={src} alt={alt} style={border ? `border:${border}px solid black` : undefined} />
+  </a>
+  <figcaption>
+    {title && <h4>{title}</h4>}
+    <slot />
+  </figcaption>
+</figure>

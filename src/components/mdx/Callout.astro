@@ -1,0 +1,44 @@
+---
+interface Props {
+  type?: string;
+  title?: string;
+  collapsible?: boolean;
+  open?: boolean;
+  class?: string;
+}
+
+const { type = 'note', title, collapsible = false, open = false, class: className } = Astro.props;
+
+const normalizedTitle = title ?? ({
+  warning: 'Warning',
+  warn: 'Warning',
+  danger: 'Danger',
+  error: 'Danger',
+  info: 'Info',
+  tip: 'Tip',
+  hint: 'Tip',
+  success: 'Success',
+}[type] ?? 'Note');
+---
+
+{collapsible ? (
+  <details class={`callout callout-${type} callout-collapsible`} open={open} data-class={className}>
+    <summary class="callout-header">
+      <span class="callout-icon" aria-hidden="true">✦</span>
+      <div class="callout-title">{normalizedTitle}</div>
+    </summary>
+    <div class="callout-content">
+      <slot />
+    </div>
+  </details>
+) : (
+  <aside class={`callout callout-${type}`} data-class={className}>
+    <header class="callout-header">
+      <span class="callout-icon" aria-hidden="true">✦</span>
+      <div class="callout-title">{normalizedTitle}</div>
+    </header>
+    <div class="callout-content">
+      <slot />
+    </div>
+  </aside>
+)}

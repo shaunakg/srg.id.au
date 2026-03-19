@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chopping my brain into bits</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="banner" role="img" aria-label="Chopping my brain into bits interactive brain banner">
+    <div id="canvas"></div>
+    <div id="labels" aria-hidden="true">
+      <svg id="labelLines"></svg>
+      <div id="labelBoxes"></div>
+    </div>
+    <div id="title" aria-hidden="true">
+      <div class="title-line">Chopping my brain</div>
+      <div class="title-line">into bits</div>
+    </div>
+    <div id="overlay">
+      <div class="corner tl">Shaunak G</div>
+      <div class="corner tr">srg.id.au/posts/brain</div>
+      <div class="corner bl">2026-01-31</div>
+      <button id="status" class="corner br status" type="button" disabled>LOADING 0%</button>
+    </div>
+  </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

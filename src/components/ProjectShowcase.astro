@@ -1,0 +1,79 @@
+---
+import projects from '../data/projects.json';
+---
+
+<div class="project-showcase" data-project-showcase>
+  <aside class="project-detail-panel is-empty is-right" data-project-panel aria-hidden="true">
+    <div class="project-detail-content">
+      <p class="project-detail-kicker mono" data-project-panel-kicker></p>
+      <h3 class="project-detail-title" data-project-panel-title></h3>
+      <p class="project-detail-summary" data-project-panel-summary></p>
+    </div>
+  </aside>
+
+  <ul class="project-gallery" aria-label="Project gallery">
+    {projects.map((project) => (
+      <li class="project-gallery-item">
+        <a
+          class="project-card"
+          href={project.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-project-kicker={project.kicker}
+          data-project-title={project.title}
+          data-project-summary={project.summary}
+        >
+          <span class="project-card-image">
+            <img src={`/${project.image}`} alt={project.alt} loading="lazy" decoding="async" />
+          </span>
+          <span class="sr-only">
+            {project.title}. {project.summary} Opens in a new tab.
+          </span>
+          <span class="project-card-mobile-copy" aria-hidden="true">
+            <span class="project-card-mobile-kicker mono">{project.kicker}</span>
+            <span class="project-card-mobile-title">{project.title}</span>
+            <span class="project-card-mobile-summary">{project.summary}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <div
+    class="project-mobile-carousel carousel"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="Projects"
+  >
+    <div class="carousel-track-container">
+      <ul class="carousel-track">
+        {projects.map((project) => (
+          <li class="carousel-slide project-mobile-carousel-slide">
+            <a class="project-mobile-card" href={project.href} target="_blank" rel="noopener noreferrer">
+              <img src={`/${project.image}`} alt={project.alt} loading="lazy" decoding="async" />
+              <span class="project-mobile-card-copy">
+                <span class="project-mobile-card-kicker mono">{project.kicker}</span>
+                <span class="project-mobile-card-title">{project.title}</span>
+                <span class="project-mobile-card-summary">{project.summary}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <button class="carousel-button carousel-button--prev" aria-label="Previous project">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <button class="carousel-button carousel-button--next" aria-label="Next project">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <div class="carousel-indicators"></div>
+  </div>
+</div>

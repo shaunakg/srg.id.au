@@ -1,0 +1,157 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsletterSignup from '../../components/NewsletterSignup.astro';
+import TableOfContents from '../../components/TableOfContents.astro';
+import TagList from '../../components/TagList.astro';
+import UtterancesComments from '../../components/UtterancesComments.astro';
+import { getPublishedPosts, getPostReadingTime, getPostSlug } from '../../lib/posts';
+import { formatDisplayDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { slug: getPostSlug(post) }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const readingTime = await getPostReadingTime(post);
+const isOldPost = post.data.date.getUTCFullYear() < 2023;
+const bodyClass = 'post-page';
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  ogImage={post.data.ogImage ?? post.data.featureImage}
+  article={true}
+  publishedTime={post.data.date}
+  bodyClass={bodyClass}
+>
+  {post.data.bannerIframe ? (
+    <h1 class="title title-iframe">
+      <span class="sr-only">{post.data.title}</span>
+      <div class="post-banner-frame">
+        <iframe
+          class="post-banner-iframe"
+          src={post.data.bannerIframe}
+          title={post.data.title}
+          loading="eager"
+        ></iframe>
+      </div>
+    </h1>
+  ) : post.data.useImageAsTitle ? (
+    <h1 class="title title-image">
+      <img src={post.data.useImageAsTitle} alt={post.data.title} loading="eager" decoding="async" />
+    </h1>
+  ) : (
+    <h1 class="title">{post.data.title}</h1>
+  )}
+
+  {!post.data.bannerIframe && (
+    <p class="subtitle">
+      <span class="date">{formatDisplayDate(post.data.date)}</span>
+      <span class="readtime">{readingTime} minute read</span>
+    </p>
+  )}
+
+  {post.data.featureImage && !post.data.bannerIframe && (
+    <figure class="feature-image">
+      <img src={post.data.featureImage} alt={`${post.data.title} feature image`} loading="lazy" decoding="async" />
+    </figure>
+  )}
+
+  {isOldPost && (
+    <div class="old-post-warning">
+      <p><strong>Old post.</strong> Hi! Thanks for reading this older post. I wrote it back in high school, so you may run into broken links or out-of-date information.</p>
+      <p>If you have any questions, just <a href="mailto:hi@srg.id.au">email me</a> and I'm happy to answer.</p>
+    </div>
+  )}
+
+  <TagList tags={post.data.tags} />
+  <TableOfContents headings={headings} postTitle={post.data.title} variant="mobile" />
+
+  <div class={`post-layout ${headings.length ? 'has-toc' : ''}`.trim()}>
+    <TableOfContents headings={headings} postTitle={post.data.title} variant="desktop" />
+    <article class="post-article">
+      <Content />
+    </article>
+    <aside class="footnote-rail right" aria-hidden="true"></aside>
+  </div>
+
+  <NewsletterSignup variant="post-bottom" />
+
+  <div class="footnote-modal" id="footnote-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="footnote-modal-backdrop" type="button" data-footnote-close aria-label="Close footnote"></button>
+    <div class="footnote-modal-sheet" role="document">
+      <div class="footnote-modal-grab" aria-hidden="true"></div>
+      <div class="footnote-modal-header">
+        <span class="footnote-modal-title">Footnote <span data-footnote-number></span></span>
+        <button class="footnote-modal-close" type="button" data-footnote-close aria-label="Close footnote">×</button>
+      </div>
+      <div class="footnote-modal-body" data-footnote-content></div>
+    </div>
+  </div>
+
+  {!post.data.disableComments && <UtterancesComments />}
+
+  <script is:inline src="/footnotes.js"></script>
+  <script is:inline src="/toc-current.js"></script>
+  <script is:inline>
+    (() => {
+      const layout = document.querySelector('.post-layout');
+      const article = layout?.querySelector('.post-article');
+      const rightRail = layout?.querySelector('.footnote-rail.right');
+      if (!layout || !article || !rightRail) return;
+      if (rightRail.children.length > 0) return;
+
+      const refs = Array.from(article.querySelectorAll('sup a[data-footnote-ref][href^="#"]'));
+      const footnotesSection = article.querySelector('.footnotes');
+      if (refs.length === 0 || !footnotesSection) return;
+
+      const defs = new Map();
+      for (const item of footnotesSection.querySelectorAll('li[id]')) {
+        const clone = item.cloneNode(true);
+        const backref = clone.querySelector('a[data-footnote-backref], a.footnote-backref, a.data-footnote-backref');
+        if (backref) backref.remove();
+        defs.set(item.id, clone.innerHTML.trim());
+      }
+
+      const notes = [];
+      refs.forEach((ref) => {
+        const id = (ref.getAttribute('href') || '').slice(1);
+        const content = defs.get(id);
+        if (!content) return;
+        const note = document.createElement('aside');
+        note.className = 'sidenote';
+        const number = ref.textContent.trim();
+        note.innerHTML = '<div class="sidenote-inner"><div class="sidenote-header">Note <span class="sidenote-number">' + number + '</span></div><div class="sidenote-body">' + content + '</div></div>';
+        rightRail.appendChild(note);
+        notes.push({ ref, note, id, number });
+      });
+
+      if (notes.length === 0) return;
+      document.body.classList.add('footnotes-enhanced');
+      footnotesSection.style.display = 'none';
+
+      const position = () => {
+        const layoutRect = layout.getBoundingClientRect();
+        let currentTop = 0;
+        const gap = 14;
+        for (const { ref, note } of notes) {
+          const refRect = ref.getBoundingClientRect();
+          const desiredTop = refRect.top - layoutRect.top + refRect.height * 0.5 - note.offsetHeight * 0.5;
+          const top = Math.max(currentTop, desiredTop);
+          note.style.top = `${top}px`;
+          currentTop = top + note.offsetHeight + gap;
+        }
+      };
+
+      requestAnimationFrame(position);
+      window.addEventListener('load', position, { once: true });
+      window.addEventListener('resize', position);
+    })();
+  </script>
+
+  <a style="font-size: 0.8em" href="#" onclick="history.back()">&lt;- Back</a>
+</BaseLayout>

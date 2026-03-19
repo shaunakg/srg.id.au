@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsletterSignup from '../../components/NewsletterSignup.astro';
+import { getPublishedPosts, getPostSlug } from '../../lib/posts';
+import { formatMonthDay } from '../../lib/site';
+
+const posts = await getPublishedPosts();
+const grouped = new Map<number, typeof posts>();
+
+for (const post of posts) {
+  const year = post.data.date.getUTCFullYear();
+  grouped.set(year, [...(grouped.get(year) ?? []), post]);
+}
+---
+
+<BaseLayout title="Blog posts" description="Writing on medicine, AI, and projects I'm building.">
+  <h1 class="title">Blog posts</h1>
+
+  <p>
+    Writing on medicine, AI, and projects I'm building.
+  </p>
+
+  <NewsletterSignup variant="posts-index" />
+
+  <div class="post-list">
+    {[...grouped.entries()].map(([year, yearPosts]) => (
+      <>
+        <h3 class="year-header">{year}</h3>
+        <div class="year-group">
+          {yearPosts.map((post) => (
+            <div class="post-item" data-date={post.data.date.toISOString().slice(0, 10)}>
+              <div class="post-header">
+                <a class="post-title" href={post.data.externalLink ?? `/posts/${getPostSlug(post)}/`}>
+                  {post.data.title}
+                </a>
+              </div>
+              {(post.data.description || post.body) && (
+                <div class="post-description">
+                  <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </>
+    ))}
+  </div>
+
+  <a class="back" href="#" onclick="history.back()">&lt;- Back</a>
+</BaseLayout>

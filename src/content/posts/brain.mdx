@@ -1,0 +1,57 @@
+---
+title: "Chopping my brain into bits"
+description: "Splitting myself apart."
+date: "2026-01-31"
+draft: true
+tags:
+  - "medicine"
+bannerIframe: "/posts/brain-post-banner/index.html"
+disableComments: false
+disableToc: false
+---
+
+import Figure from '../../components/mdx/Figure.astro'
+import Carousel from '../../components/mdx/Carousel.astro'
+import CarouselItem from '../../components/mdx/CarouselItem.astro'
+import VideoFigure from '../../components/mdx/VideoFigure.astro'
+import Callout from '../../components/mdx/Callout.astro'
+
+Have you ever seen your brain peeking out from behind your translucent skull, with your frontal lobe slightly visible through your empty eye sockets?
+
+<Figure src="/posts/brain/skull.gif" alt="A rotating, semi-translucent 3D model of a skull.">
+Well, I have!
+</Figure>
+
+It turns out that when you get an MRI for a research study, they send you the raw DICOM data. However, the default viewer that they tell you to use is really only useful for radiologists. For the rest of us, it's just a bit creepy.
+
+However, when I received the raw data, I wanted to see what I could do with it. Quite a lot, it turns out. In this post, I'll go over how I turned my raw MRI scan into the interactive graphic you're seeing above, plus some other interesting data I was able to extract.
+
+## The raw scan 
+
+I received my MRI scan in NIfTI format, which is a raster file format for storing neuroimaging data. My specific scanner had a field strength of 7 Tesla, which is quite a lot stronger than the ~1.5T they use in hospitals. [^1]
+
+[^1]: Unfortunately, even though NIfTI supports 4-dimensional (3D + time) neuroimaging, I wasn't able to source longitudinal data from the researchers.
+
+I was also provided a link to a [rudimentary online DICOM viewer](https://socr.umich.edu/HTML5/BrainViewer/). This let me view the MRI as a radiologist would, slice-by-slice, with some basic volume rendering.
+
+<Carousel>
+<CarouselItem src="/posts/brain/umich-slices.png" alt="Sketchy DDx">
+The default view creates a 3D representation by aligning the axial, coronal and sagittal views in their respective planes.
+</CarouselItem>
+
+    <CarouselItem src="/posts/brain/umich-3d.png" alt="Stanford ML">
+The 3D view generates a point cloud from the opacities in the MRI and shows a representation of the entire scan. This fails to adequately segment the brain, so you just end up seeing your translucent skull.
+</CarouselItem>
+</Carousel>
+
+This felt unsatisfying to me. I knew that, if a radiologist looked at my scan, they would be able to visualise the various structures inside my head that contributed to making me who I am. However, as a medical student, I didn't have the same intuition. 
+
+In this blog post, I'll walk you through how I **a)** labelled the structures inside my brain and **b)** turned that data into something pleasant and intuitive to explore.
+
+## Stage 1: labeling the brain
+
+My first question was, can I label anything at all? Is it possible to find a model that can interpret an MRI slice and identify different structures, similar to a radiologist would?
+
+I felt that this must be a solved problem, simply due to the sheer amount of neuroimaging studies that happen every day. So, I went searching for segmentation techniques.
+
+### Atlas-based segmentation

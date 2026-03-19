@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="A piece of my mind">
+  <div class="mind-container">
+    <h1>A piece of my mind</h1>
+
+    <div class="model-viewer">
+      <div
+        id="brain-model"
+        style="width: 100%; height: 400px; background: #f5f5f5; display: flex; align-items: center; justify-content: center;"
+      >
+        <p>Loading 3D model... This may take a few moments.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap" is:inline>
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.177.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.177.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module" src="/brain.js"></script>
+</BaseLayout>

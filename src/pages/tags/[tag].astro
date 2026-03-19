@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllTags, getPostsByTag, getPostSlug } from '../../lib/posts';
+import { formatMonthDay } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+  return tags.map((tag) => ({ params: { tag: tag.slug }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const posts = await getPostsByTag(tag.slug);
+---
+
+<BaseLayout title={`#${tag.tag}`} description={`Posts tagged ${tag.tag}.`}>
+  <h1 class="title">#{tag.tag}</h1>
+  <p>{tag.count} post{tag.count === 1 ? '' : 's'} tagged with {tag.tag}.</p>
+
+  <div class="post-list">
+    <div class="year-group">
+      {posts.map((post) => (
+        <div class="post-item" data-date={post.data.date.toISOString().slice(0, 10)}>
+          <div class="post-header">
+            <a class="post-title" href={`/posts/${getPostSlug(post)}/`}>{post.data.title}</a>
+          </div>
+          <div class="post-description">
+            <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <a class="back" href="/posts/">&lt;- Back to posts</a>
+</BaseLayout>

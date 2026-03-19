@@ -1,0 +1,48 @@
+---
+interface Props {
+  src: string;
+  title?: string;
+  type?: string;
+  controls?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  width?: string;
+  height?: string;
+  border?: number;
+  class?: string;
+}
+
+const {
+  src,
+  title,
+  type = 'video/mp4',
+  controls = false,
+  autoplay = false,
+  loop = false,
+  muted = false,
+  width,
+  height,
+  border,
+  class: className,
+} = Astro.props;
+---
+
+<figure class={className}>
+  <video
+    controls={controls}
+    autoplay={autoplay}
+    loop={loop}
+    muted={muted}
+    width={width}
+    height={height}
+    style={border ? `border:${border}px solid black` : undefined}
+  >
+    <source src={src} type={type} />
+    Your browser does not support the video tag.
+  </video>
+  <figcaption>
+    {title && <h4>{title}</h4>}
+    <slot />
+  </figcaption>
+</figure>

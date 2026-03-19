@@ -6,12 +6,19 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --host",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro preview --host",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.0.6"
+    "@astrojs/mdx": "^5.0.2",
+    "@astrojs/rss": "^4.0.17",
+    "@astrojs/sitemap": "^3.7.1",
+    "astro": "^6.0.6",
+    "remark-gfm": "^4.0.1",
+    "sass": "^1.93.2",
+    "slugify": "^1.6.6",
+    "typescript": "^5.9.3"
   }
 }

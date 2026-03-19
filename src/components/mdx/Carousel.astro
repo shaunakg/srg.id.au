@@ -1,0 +1,21 @@
+<div class="carousel" role="region" aria-roledescription="carousel" aria-label="Image Carousel">
+  <div class="carousel-track-container">
+    <ul class="carousel-track">
+      <slot />
+    </ul>
+  </div>
+
+  <button class="carousel-button carousel-button--prev" aria-label="Previous slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+
+  <button class="carousel-button carousel-button--next" aria-label="Next slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+
+  <div class="carousel-indicators"></div>
+</div>

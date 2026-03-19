@@ -1,0 +1,110 @@
+---
+title: "Building Scalpel - a surgical rotation assistant"
+description: "Scalpel helps med students prepare for their surgical rotations by providing them with comprehensive information about any surgical procedure."
+date: "2025-12-05"
+draft: false
+slug: "scalpel"
+tags:
+  - "project"
+  - "llm"
+  - "scalpel"
+  - "medicine"
+disableComments: false
+disableToc: false
+---
+
+import Figure from '../../components/mdx/Figure.astro'
+import Carousel from '../../components/mdx/Carousel.astro'
+import CarouselItem from '../../components/mdx/CarouselItem.astro'
+import VideoFigure from '../../components/mdx/VideoFigure.astro'
+import Callout from '../../components/mdx/Callout.astro'
+
+<Callout type="info" title="TL;DR">
+I created a super fast surgical procedure summary tool using Vite and React. Give it a go: [https://scalpel.srg.id.au](https://scalpel.srg.id.au)
+</Callout>
+
+## Background
+
+This year, I started my clinical placements. As many medical students will know, the independence and lack of hand-holding is something that can take a moment to get used to.
+
+One of the most significant challenges I faced this year occurred during my surgical rotation. In my hospital, students do not have access to the operating theatre schedules, and the only way to see which surgeries are scheduled is to visit the theatre and consult a paper list, which you can only do in the small gap after rounds but before the first surgeries. This means that I often only found out which surgery was taking place minutes before scrubbing in, leaving me wholly unprepared for any questions I might be asked.
+
+Furthermore, the operating theatre list often has abbrevations or acronyms that are not always clear. For example, take the procedure `ORIF distal rad +/- K-wire`. This refers to an open reduction and internal fixation of the distal radius (a bone in your forearm), with or without inserting a pin in the bone. To be as prepared as possible, I would need to look up:
+
+- What is an ORIF?
+- What is a K-wire?
+- When do we decide whether to use a K-wire?
+
+Ideally, I would also want to read up on all the anatomy involved in the procedure (any landmarks, major anatomical structures and any risks associated with the procedure). However, with only 15-20 minutes to spare before scrubbing in, I would usually have to skip this step. This left me at risk of one of the worst things that can happen to a medical student: getting caught not knowing the basics.
+
+Therefore, I decided to create a small web app that uses an LLM to provide medical students with all the information they could possibly need for their rotation in a timely manner. I named the result of this effort *Scalpel* because it cuts through the confusion. In this blog post, I'll go through the features, the reasoning behind them, and how I implemented them.
+
+## Key features
+
+### Fast, flexible procedure input
+
+A key problem I identified was the lack of a standard naming system for procedures, at least in the OR schedules (which is the only source I had access to). Therefore, Scalpel accepts any procedure name, abbreviation or description. An LLM is used to suggest a long procedure name that matches the input, and that name is used for the rest of the generation process. The LLM also generates alternative names for the procedure, which are indexed and displayed alongside the main name. This allows users to quickly find pre-generated pages for procedures.
+
+<Figure src="/posts/scalpel/1.jpg" alt="Annotated search flow for Scalpel.">
+The input and search system was designed to meet the use case: flexible procedure inputs.
+</Figure>
+
+However, for medical students that potentially do have access to exact procedure names, or a SNOMED CT code, Scalpel provides a search and autocomplete feature. Any SNOMED CT code is accepted as input, and textual inputs also search the SNOMED code database to find the corresponding procedure name. This system uses a [ZincSearch](https://github.com/zincsearch/zincsearch) search engine instance with a Cloudflare Worker in front of it for caching.
+
+<Figure src="/posts/scalpel/searchengine.svg" alt="Search engine diagram for the SNOMED search.">
+The search engine architecture is designed for redundancy and speed.
+</Figure>
+
+Because speed is critical for Scalpel, I performed stress testing on the search engine with [`vegeta`](https://github.com/tsenart/vegeta). The results are displayed below. 50% of requests are served in less than 40ms, and 99% in less than 147ms.
+
+<Figure src="/posts/scalpel/histogram.png" alt="Histogram of response times for the SNOMED search.">
+Stress testing shows a p99 latency of 147ms, and a p50 latency of 40ms.
+</Figure>
+
+### Fast generation
+
+It is critical that information is displayed as fast as possible. When dealing with LLMs, this not only means generating the data quickly, but finding ways to display generated tokens in the UI before the full procedure entry is complete. This allows students to immediately start learning about the procedure.
+
+To optimise **generation speed**, I decided to use Meta AI's LLaMA 3.3 model with 70 billion parameters. This achieves a good mix between size (needed for accuracy) and speed (needed for responsiveness). The chosen inference provider is Cerebras, who serve this model at ~2100 tok/s, orders of magnitude faster than other providers.
+
+To optimise **display speed**, I chose to parallelise the generation process. This involves splitting the generation task into smaller chunks and processing them concurrently. By doing so, the UI can display partial results as soon as they are available, rather than waiting for the entire procedure to be generated. Each worker receives the procedure name and a strict description, to ensure coherence between sections.
+
+The result of this is that the first procedure descriptions are usually visible within 2 seconds, and the entire procedure is generated within 5 seconds.
+
+<VideoFigure src="/posts/scalpel/aaa-repair.mp4" alt="Video showing Scalpel generating a procedure page for the procedure 'AAA repair w/ EVAR explant'." autoplay muted controls loop>
+Most responses are generated in 5 seconds, with visible text appearing within 2 seconds. Every generated section is displayed as soon as it is available, allowing the user to start learning about the procedure immediately.
+</VideoFigure>
+
+## The point of it all
+
+You might have a few objections at this point. For example, you might see that there is no factual grounding for the LLM to draw upon, so the rate of hallucinations is probably signficant. Or, that the anatomy capabilities are quite rudimentary and simple Google Image searches probably don't build a great foundation.
+
+However, I did not create Scalpel to be used daily. In fact, I've only used it myself less than 10 times in a real-world situation. It's really only the best option the first time you see a complicated procedure name and don't have time to research in depth.
+
+The point of creating Scalpel, and this post, is to demonstrate the use of LLMs in medical education. I recently attended <span class="hover-clarify" title="Association for Medical Education in Europe">AMEE</span> 2025 in Barcelona, where AI was a major theme. There were several sessions dedicated to AI in medicine and myriad booths with companies selling AI edtech products. 
+
+<Carousel>
+<CarouselItem src="/posts/scalpel/spain/sketchy-ddx.jpg" alt="Sketchy DDx">
+Sketchy's AI DDx product - creates a simulated patient that you can chat to in order to hone your differential diagnosis skills.
+</CarouselItem>
+
+    <CarouselItem src="/posts/scalpel/spain/stanford-ml.jpg" alt="Stanford ML">
+A lecture from Stanford on AI clinical simulation tools (specifically Clinical Mind AI).
+</CarouselItem>
+
+    <CarouselItem src="/posts/scalpel/spain/uicm-ml.jpg" alt="UICM ML">
+A lecture from the University of Illinois at Chicago on ML in medicine.
+</CarouselItem>
+    
+    <CarouselItem src="/posts/scalpel/spain/llm-taste.jpg" alt="LLM Taste">
+A lecture about LLMs in health professions education, specifically, how one can develop a taste for the quality of an LLM.
+</CarouselItem>
+</Carousel>
+
+What I did not find, however, was any lectures helping students or educators create their own learning tools. This was surprising to me, as I think it's obvious that customised learning leads to the best outcomes - that's why private tutors and personalised curricula are so popular. Furthermore, with LLMs in their current state, it's relatively easy to create these tools for ourselves.
+
+The fact that a single student can build a tool like Scalpel in their spare time is proof that the barrier to entry for medical education technology has collapsed. We are moving away from a one-size-fits-all model of education toward one where students can architect their own learning support systems.
+
+At AMEE, the conversation was largely about how institutions can use AI to teach us. I think the more interesting conversation is how we can use AI to teach ourselves. Scalpel is just a small experiment in that direction - an attempt to use large language models to handle the messy reality of hospital logistics so I can focus on the medicine.
+
+Thanks for reading - if you have any thoughts, I'd love to hear them! Please shoot me an [email](mailto:hi@srg.id.au) or [DM](https://x.com/2vectorfoil) and let's chat!

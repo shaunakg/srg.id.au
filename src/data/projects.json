@@ -1,0 +1,58 @@
+[
+  {
+    "title": "srg.id.au",
+    "href": "https://srg.id.au/",
+    "kicker": "portfolio",
+    "summary": "is my personal portfolio site, built with Zola and hosted on Cloudflare Pages.",
+    "image": "project-previews/this-site.png",
+    "alt": "This site's social preview image."
+  },
+  {
+    "title": "Scalpel",
+    "href": "/posts/scalpel/",
+    "kicker": "medical education",
+    "summary": "is a surgical rotation assistant with rapid procedure guides, anatomy references, and quick answers.",
+    "image": "project-previews/scalpel.png",
+    "alt": "Scalpel preview image."
+  },
+  {
+    "title": "Cardz",
+    "href": "/posts/building-cardz/",
+    "kicker": "machine learning",
+    "summary": "was a quiz-generation app that turned textbooks into study decks with a single click.",
+    "image": "project-previews/cardz.webp",
+    "alt": "Cardz flashcard interface preview."
+  },
+  {
+    "title": "SixtySecondShell",
+    "href": "https://github.com/shaunakg/sixtysecondshell",
+    "kicker": "programming education",
+    "summary": "was a timed terminal challenge where users had sixty seconds to experiment with more than 100 programming languages.",
+    "image": "project-previews/sixtysecondshell.png",
+    "alt": "SixtySecondShell repository social preview."
+  },
+  {
+    "title": "DevPlatform",
+    "href": "https://s-g.notion.site/DevPlatform-Internal-Development-Platform-a4b85d9675c4435e9b90bfb85d4f0317",
+    "kicker": "internal tooling",
+    "summary": "was a browser-based cloud development environment with provisioning, access control, and built-in IDE workflows.",
+    "image": "project-previews/devplatform.png",
+    "alt": "DevPlatform management console."
+  },
+  {
+    "title": "Ultramarine",
+    "href": "https://s-g.notion.site/Ultramarine-Real-time-fully-encrypted-database-less-chat-791250f124234581b2cb3248c331aba0",
+    "kicker": "encrypted chat",
+    "summary": "was an ephemeral end-to-end encrypted chat tool that worked without a database and left no messages behind.",
+    "image": "project-previews/ultramarine.png",
+    "alt": "Ultramarine encrypted chat interface."
+  },
+  {
+    "title": "Notion Reading List",
+    "href": "/notion-reading-list/",
+    "kicker": "notion integration",
+    "summary": "lets you maintain Notion reading lists by automatically fetching book covers and metadata.",
+    "image": "project-previews/notion-reading-list.png",
+    "alt": "Notion Reading List integration preview."
+  }
+]
