@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getAllTags, getPostsByTag, getPostSlug } from '../../lib/posts';
+import { getAllTags, getPostHref, getPostsByTag, isExternalHref } from '../../lib/posts';
 import { formatMonthDay } from '../../lib/site';
 
 export async function getStaticPaths() {
@@ -21,11 +21,20 @@ const posts = await getPostsByTag(tag.slug);
       {posts.map((post) => (
         <div class="post-item" data-date={post.data.date.toISOString().slice(0, 10)}>
           <div class="post-header">
-            <a class="post-title" href={`/posts/${getPostSlug(post)}/`}>{post.data.title}</a>
+            <a
+              class="post-title"
+              href={getPostHref(post)}
+              target={isExternalHref(getPostHref(post)) ? '_blank' : undefined}
+              rel={isExternalHref(getPostHref(post)) ? 'noopener noreferrer' : undefined}
+            >
+              {post.data.title}
+            </a>
           </div>
-          <div class="post-description">
-            <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
-          </div>
+          {post.data.description && (
+            <div class="post-description">
+              <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
+            </div>
+          )}
         </div>
       ))}
     </div>

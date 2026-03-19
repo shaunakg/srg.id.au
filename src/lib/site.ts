@@ -5,13 +5,16 @@ export const site = {
   email: 'hi@srg.id.au',
   github: 'https://github.com/shaunakg',
   twitter: 'https://x.com/2vectorfoil',
+  twitterHandle: '@2vectorfoil',
+  domain: 'srg.id.au',
   newsletterEndpoint: '/api/subscribe',
   analyticsId: 'G-P80KQB5DMX',
   utterancesRepo: 'shaunakg/portfolio-zola',
   defaultOgImage: '/og.png',
+  ogImageService: 'https://og.srg.id.au/api/og',
 };
 
-export function absoluteUrl(path: string, base: URL) {
+export function absoluteUrl(path: string, base: URL | string) {
   return new URL(path, base).toString();
 }
 
@@ -43,6 +46,11 @@ export function slugifyTag(tag: string) {
 }
 
 export function readingMinutes(text: string) {
-  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const sanitized = text
+    .replace(/^import\s.+$/gm, ' ')
+    .replace(/^export\s.+$/gm, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .trim();
+  const words = sanitized.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }

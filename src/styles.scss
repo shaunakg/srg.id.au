@@ -1,3 +1,5 @@
+@use "sass:color";
+
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400..700;1,400..700&display=swap');
 
@@ -253,6 +255,8 @@ figure img,
 figure video {
     display: block;
     margin: 0 auto;
+    width: 100%;
+    height: auto;
     max-width: 100%;
     border-radius: 3px;
     border: 1px solid rgba(238, 238, 238, 0.415);
@@ -453,29 +457,36 @@ div.intro {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: opacity 280ms ease, transform 280ms ease;
-
-            &.dithered {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            &.full {
-                opacity: 0;
-                transform: scale(0.98);
-            }
+            transition: transform 280ms ease;
         }
 
-        &:hover {
-            .profile-photo.dithered {
-                opacity: 0;
-                transform: scale(1.02);
-            }
+        .photo-motion-button {
+            display: block;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            border-radius: inherit;
+            background: transparent;
+            cursor: pointer;
+            overflow: hidden;
+        }
 
-            .profile-photo.full {
-                opacity: 1;
-                transform: scale(1);
-            }
+        .photo-motion-button:focus-visible {
+            box-shadow: 0 0 0 3px rgba($accent-color, 0.28);
+        }
+
+        .profile-photo-stack {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 100%;
+            transition: transform 280ms ease;
+            will-change: transform;
+        }
+
+        .profile-photo-single {
+            transform: scale(1);
         }
     }
 }
@@ -1009,6 +1020,9 @@ p.about {
     }
 
     .project-mobile-carousel {
+        --carousel-slide-width: min(calc(100vw - 56px), 24rem);
+        --carousel-frame-width: 100vw;
+
         display: block;
         width: 100vw;
         margin-top: 0;
@@ -1027,15 +1041,16 @@ p.about {
     }
 
     .project-mobile-carousel .carousel-track-container {
-        overflow: visible;
+        overflow-x: auto;
     }
 
     .project-mobile-carousel .carousel-track {
         gap: 20px;
+        padding-inline: calc((100vw - var(--carousel-slide-width)) / 2);
     }
 
     .project-mobile-carousel .project-mobile-carousel-slide {
-        width: min(calc(100vw - 56px), 24rem);
+        width: var(--carousel-slide-width);
         opacity: 0.38;
     }
 
@@ -1150,6 +1165,10 @@ p.about {
 }
 
 @media (max-width: 560px) {
+    .project-mobile-carousel {
+        --carousel-slide-width: calc(100vw - 52px);
+    }
+
     .project-mobile-carousel .project-mobile-carousel-slide {
         width: calc(100vw - 52px);
     }
@@ -1726,7 +1745,8 @@ body.post-page .title:not(.title-image):not(.title-iframe) {
     color: #2c241b;
 }
 
-sup.footnote-reference {
+sup.footnote-reference,
+sup:has(> a[data-footnote-ref]) {
     font-family: $font-ui;
     font-variant-numeric: tabular-nums;
     font-size: 0.7em;
@@ -1734,7 +1754,8 @@ sup.footnote-reference {
     vertical-align: super;
 }
 
-sup.footnote-reference a {
+sup.footnote-reference a,
+a[data-footnote-ref] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1749,8 +1770,11 @@ sup.footnote-reference a {
 }
 
 sup.footnote-reference a:hover,
-sup.footnote-reference a.is-active {
-    background-color: $accent-color;
+sup.footnote-reference a.is-active,
+a[data-footnote-ref]:hover,
+a[data-footnote-ref].is-active {
+    background-color: #111;
+    border-color: #111;
     color: white;
 }
 
@@ -2547,31 +2571,41 @@ body.footnote-modal-open {
 // ============================================
 
 .carousel {
+    --carousel-slide-width: min(100%, 24rem);
+    --carousel-frame-width: 100%;
+
     position: relative;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    width: 100%;
+    margin: 0;
     overflow: hidden;
 }
 
 .carousel-track-container {
     width: 100%;
     height: 100%;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scroll-padding-inline: max(calc((var(--carousel-frame-width) - var(--carousel-slide-width)) / 2), 0px);
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pinch-zoom;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.carousel-track-container::-webkit-scrollbar {
+    display: none;
 }
 
 .carousel-track {
-    position: relative;
     display: flex;
-    gap: 20px;
-    padding: 0;
+    gap: 14px;
+    padding: 0 max(calc((var(--carousel-frame-width) - var(--carousel-slide-width)) / 2), 0px);
     margin: 0;
     list-style: none;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     width: max-content;
-    will-change: transform;
 }
 
 .carousel-slide {
@@ -2584,6 +2618,8 @@ body.footnote-modal-open {
     opacity: 0.4;
     transition: opacity 0.4s ease;
     cursor: pointer;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
 
     &.current-slide, &[aria-current="true"] {
         opacity: 1;
@@ -2592,41 +2628,6 @@ body.footnote-modal-open {
 
     &[aria-hidden="true"] {
         visibility: visible;
-    }
-
-    figure.carousel-item {
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        max-width: unquote("min(80vw, 600px)"); // Limit the figure's overall width
-    }
-
-    img, video {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        max-height: 50vh;
-        object-fit: contain;
-        margin: 0 auto;
-        border-radius: 8px;
-    }
-
-    video {
-        max-width: 100%;
-    }
-
-    .carousel-caption {
-        padding: 12px 0 0 0;
-        background: transparent;
-        color: #555;
-        text-align: center;
-        width: 0;
-        min-width: 100%;
-        font-size: 0.85rem;
-        border-top: none;
-
-        p { margin: 0; line-height: 1.4; }
     }
 }
 
@@ -2667,6 +2668,177 @@ body.footnote-modal-open {
     svg {
         width: 20px;
         height: 20px;
+    }
+}
+
+.media-carousel {
+    position: relative;
+    width: 100vw;
+    margin: 2rem calc(50% - 50vw);
+    overflow: hidden;
+}
+
+.media-carousel-viewport {
+    width: 100%;
+    overflow: hidden;
+    touch-action: pan-y pinch-zoom;
+}
+
+.media-carousel-track {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    will-change: transform;
+    opacity: 0;
+}
+
+.media-carousel.is-ready .media-carousel-track {
+    opacity: 1;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.14s ease;
+}
+
+.media-carousel-slide {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    opacity: 0.4;
+    transition: opacity 0.32s ease;
+    cursor: pointer;
+
+    &.current-slide,
+    &[aria-current="true"] {
+        opacity: 1;
+        z-index: 1;
+    }
+}
+
+.media-carousel-item {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: fit-content;
+    max-width: min(80vw, 600px);
+}
+
+.media-carousel-item img,
+.media-carousel-item video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    max-height: 50vh;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.media-carousel-caption {
+    padding: 0.45rem 0 0;
+    background: transparent;
+    color: #555;
+    text-align: center;
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+
+    p {
+        margin: 0;
+        line-height: 1.4;
+    }
+}
+
+.media-carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    color: #333;
+    opacity: 0;
+    backdrop-filter: blur(4px);
+
+    &:hover:not(:disabled) {
+        background: white;
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 1;
+    }
+
+    &:disabled {
+        opacity: 0 !important;
+        cursor: default;
+        pointer-events: none;
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.media-carousel:hover .media-carousel-button,
+.media-carousel:focus-within .media-carousel-button {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .media-carousel-button {
+        opacity: 0.8;
+    }
+}
+
+.media-carousel-button--prev { left: 5vw; }
+.media-carousel-button--next { right: 5vw; }
+
+.media-carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 0;
+    margin: 12px 0 0;
+    width: 100%;
+}
+
+.media-carousel-indicator {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    &:focus-visible {
+        outline: 2px solid rgba(17, 17, 17, 0.6);
+        outline-offset: 3px;
+    }
+
+    &.current-slide,
+    &[aria-current="true"] {
+        background: #111;
+        transform: scale(1.15);
     }
 }
 
@@ -2889,6 +3061,15 @@ a.post-title:hover {
     opacity: 0.55;
 }
 
+.newsletter-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .newsletter-submit {
     border: 0;
     background: transparent;
@@ -2906,7 +3087,7 @@ a.post-title:hover {
 }
 
 .newsletter-submit:hover {
-    color: darken($accent-color, 8%);
+    color: color.adjust($accent-color, $lightness: -8%);
     text-decoration: none;
     transform: none;
 }

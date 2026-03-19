@@ -1,13 +1,6 @@
 ---
+import UtterancesCommentsIsland from './react/UtterancesComments';
 import { site } from '../lib/site';
 ---
 
-<script
-  src="https://utteranc.es/client.js"
-  repo={site.utterancesRepo}
-  issue-term="og:title"
-  label="comments"
-  theme="github-light"
-  crossorigin="anonymous"
-  async
-></script>
+<UtterancesCommentsIsland client:visible repo={site.utterancesRepo} />

@@ -59,7 +59,12 @@
 
 <script src="/notion-reading-list/template.v1.js"></script>
 <script>
-    document.querySelector(location.hash).scrollIntoView()
+    if (location.hash) {
+        const target = document.querySelector(location.hash);
+        if (target && 'scrollIntoView' in target) {
+            target.scrollIntoView();
+        }
+    }
 </script>
 
 <script type="text/front-matter">

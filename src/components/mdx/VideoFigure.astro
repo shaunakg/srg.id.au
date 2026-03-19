@@ -2,6 +2,7 @@
 interface Props {
   src: string;
   title?: string;
+  alt?: string;
   type?: string;
   controls?: boolean;
   autoplay?: boolean;
@@ -16,6 +17,7 @@ interface Props {
 const {
   src,
   title,
+  alt,
   type = 'video/mp4',
   controls = false,
   autoplay = false,
@@ -34,6 +36,7 @@ const {
     autoplay={autoplay}
     loop={loop}
     muted={muted}
+    aria-label={alt ?? title}
     width={width}
     height={height}
     style={border ? `border:${border}px solid black` : undefined}

@@ -1,12 +1,16 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import remarkGfm from 'remark-gfm';
 
 export default defineConfig({
   site: 'https://srg.id.au',
   trailingSlash: 'always',
-  integrations: [mdx({ remarkPlugins: [remarkGfm] }), sitemap()],
+  integrations: [mdx({ remarkPlugins: [remarkGfm] }), react(), sitemap()],
+  image: {
+    domains: ['cdn.srg.id.au'],
+  },
   markdown: {
     remarkPlugins: [remarkGfm],
     shikiConfig: {

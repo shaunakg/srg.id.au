@@ -1,5 +1,6 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'zod';
 
 const posts = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
@@ -14,9 +15,8 @@ const posts = defineCollection({
     bannerIframe: z.string().optional(),
     useImageAsTitle: z.string().optional(),
     ogImage: z.string().optional(),
-    externalLink: z.string().optional(),
+    externalLink: z.url().optional(),
     disableComments: z.boolean().default(false),
-    disableToc: z.boolean().default(false),
   }),
 });
 

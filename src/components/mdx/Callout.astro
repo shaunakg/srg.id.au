@@ -22,7 +22,7 @@ const normalizedTitle = title ?? ({
 ---
 
 {collapsible ? (
-  <details class={`callout callout-${type} callout-collapsible`} open={open} data-class={className}>
+  <details class={['callout', `callout-${type}`, 'callout-collapsible', className].filter(Boolean).join(' ')} open={open}>
     <summary class="callout-header">
       <span class="callout-icon" aria-hidden="true">✦</span>
       <div class="callout-title">{normalizedTitle}</div>
@@ -32,7 +32,7 @@ const normalizedTitle = title ?? ({
     </div>
   </details>
 ) : (
-  <aside class={`callout callout-${type}`} data-class={className}>
+  <aside class={['callout', `callout-${type}`, className].filter(Boolean).join(' ')}>
     <header class="callout-header">
       <span class="callout-icon" aria-hidden="true">✦</span>
       <div class="callout-title">{normalizedTitle}</div>

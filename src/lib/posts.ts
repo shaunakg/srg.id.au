@@ -40,6 +40,18 @@ export function getPostSlug(post: PostEntry) {
   return post.data.slug ?? post.id.replace(/\.(md|mdx)$/i, '').split('/').pop() ?? post.id;
 }
 
+export function getPostHref(post: PostEntry) {
+  return post.data.externalLink ?? `/posts/${getPostSlug(post)}/`;
+}
+
+export function isExternalHref(href: string) {
+  return /^[a-z][a-z\d+.-]*:/i.test(href);
+}
+
+export function isPublishedPostPage(post: PostEntry) {
+  return !post.data.externalLink;
+}
+
 export async function getPostsByTag(tagSlug: string) {
   const posts = await getPublishedPosts();
   return posts.filter((post) => (post.data.tags ?? []).some((tag) => slugifyTag(tag) === tagSlug));

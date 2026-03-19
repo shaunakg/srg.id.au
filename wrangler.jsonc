@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "srg-id-au",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-03-19",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://srg.id.au,https://www.srg.id.au",
+    "LISTMONK_LIST_ID": "3",
+    "LISTMONK_URL": "https://lists.a.srg.id.au"
+  }
+}

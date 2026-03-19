@@ -3,9 +3,11 @@
     "title": "srg.id.au",
     "href": "https://srg.id.au/",
     "kicker": "portfolio",
-    "summary": "is my personal portfolio site, built with Zola and hosted on Cloudflare Pages.",
+    "summary": "is my personal portfolio site, built with Astro and hosted on Cloudflare Pages.",
     "image": "project-previews/this-site.png",
-    "alt": "This site's social preview image."
+    "alt": "This site's social preview image.",
+    "width": 1200,
+    "height": 630
   },
   {
     "title": "Scalpel",
@@ -13,7 +15,9 @@
     "kicker": "medical education",
     "summary": "is a surgical rotation assistant with rapid procedure guides, anatomy references, and quick answers.",
     "image": "project-previews/scalpel.png",
-    "alt": "Scalpel preview image."
+    "alt": "Scalpel preview image.",
+    "width": 1200,
+    "height": 628
   },
   {
     "title": "Cardz",
@@ -21,7 +25,9 @@
     "kicker": "machine learning",
     "summary": "was a quiz-generation app that turned textbooks into study decks with a single click.",
     "image": "project-previews/cardz.webp",
-    "alt": "Cardz flashcard interface preview."
+    "alt": "Cardz flashcard interface preview.",
+    "width": 1200,
+    "height": 627
   },
   {
     "title": "SixtySecondShell",
@@ -29,7 +35,9 @@
     "kicker": "programming education",
     "summary": "was a timed terminal challenge where users had sixty seconds to experiment with more than 100 programming languages.",
     "image": "project-previews/sixtysecondshell.png",
-    "alt": "SixtySecondShell repository social preview."
+    "alt": "SixtySecondShell repository social preview.",
+    "width": 1200,
+    "height": 627
   },
   {
     "title": "DevPlatform",
@@ -37,7 +45,9 @@
     "kicker": "internal tooling",
     "summary": "was a browser-based cloud development environment with provisioning, access control, and built-in IDE workflows.",
     "image": "project-previews/devplatform.png",
-    "alt": "DevPlatform management console."
+    "alt": "DevPlatform management console.",
+    "width": 1200,
+    "height": 630
   },
   {
     "title": "Ultramarine",
@@ -45,7 +55,9 @@
     "kicker": "encrypted chat",
     "summary": "was an ephemeral end-to-end encrypted chat tool that worked without a database and left no messages behind.",
     "image": "project-previews/ultramarine.png",
-    "alt": "Ultramarine encrypted chat interface."
+    "alt": "Ultramarine encrypted chat interface.",
+    "width": 1200,
+    "height": 630
   },
   {
     "title": "Notion Reading List",
@@ -53,6 +65,8 @@
     "kicker": "notion integration",
     "summary": "lets you maintain Notion reading lists by automatically fetching book covers and metadata.",
     "image": "project-previews/notion-reading-list.png",
-    "alt": "Notion Reading List integration preview."
+    "alt": "Notion Reading List integration preview.",
+    "width": 1200,
+    "height": 630
   }
 ]

@@ -1,9 +1,20 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ProfilePhoto from '../components/ProfilePhoto.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
+import { getKnownImageDimensions } from '../lib/image-metadata';
+import { getPostHref, getPublishedPosts, isExternalHref } from '../lib/posts';
+
+const [latestPost] = await getPublishedPosts();
+const latestPostHref = latestPost ? getPostHref(latestPost) : '/posts/';
+const latestPostIsExternal = isExternalHref(latestPostHref);
+const monashLogo = getKnownImageDimensions('/images/monash.svg')!;
+const latrobeLogo = getKnownImageDimensions('/images/latrobe.png')!;
+const jmssLogo = getKnownImageDimensions('/images/jmss-bw.webp')!;
 ---
 
-<BaseLayout>
+<BaseLayout title="Shaunak Gadkari" description="Medical student and developer from Melbourne.">
   <div class="larger-text">
     <div class="intro">
       <div class="name-loc">
@@ -14,12 +25,7 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
       </div>
 
       <div class="photo">
-        <img
-          class="profile-photo"
-          id="profile-photo"
-          src="/images/me.png"
-          alt="A photo of Shaunak smiling."
-        />
+        <ProfilePhoto />
       </div>
     </div>
 
@@ -27,9 +33,14 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
 
     <p class="about">
       Hi, I'm Shaunak! I'm super interested in the intersection of medicine with AI and robotics.
-      Recently I wrote about <span id="recent-post-1" class="recent-post loading">
-        <span class="typing-dots"><span></span><span></span><span></span></span>
-      </span> — <a href="/posts/">see all my writing</a>.
+      Recently I wrote about <a
+        class="recent-post"
+        href={latestPostHref}
+        target={latestPostIsExternal ? '_blank' : undefined}
+        rel={latestPostIsExternal ? 'noopener noreferrer' : undefined}
+      >
+        {latestPost?.data.title ?? 'my latest writing'}
+      </a> — <a href="/posts/">see all my writing</a>.
     </p>
   </div>
 
@@ -39,7 +50,7 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
     <article class="education-item">
       <div class="education-school">
         <div class="education-logo">
-          <img src="/images/monash.svg" alt="Monash University logo" />
+          <Image src="/images/monash.svg" alt="Monash University logo" width={monashLogo.width} height={monashLogo.height} />
         </div>
         <p class="education-name">Monash University</p>
       </div>
@@ -51,7 +62,7 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
     <article class="education-item">
       <div class="education-school">
         <div class="education-logo">
-          <img src="/images/latrobe.png" alt="LaTrobe University logo" />
+          <Image src="/images/latrobe.png" alt="LaTrobe University logo" width={latrobeLogo.width} height={latrobeLogo.height} />
         </div>
         <p class="education-name">LaTrobe University</p>
       </div>
@@ -63,7 +74,7 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
     <article class="education-item is-complete">
       <div class="education-school">
         <div class="education-logo">
-          <img src="/images/jmss-bw.webp" alt="John Monash Science School logo" />
+          <Image src="/images/jmss-bw.webp" alt="John Monash Science School logo" width={jmssLogo.width} height={jmssLogo.height} />
         </div>
         <p class="education-name">John Monash Science School</p>
       </div>
@@ -98,171 +109,10 @@ import ProjectShowcase from '../components/ProjectShowcase.astro';
 
   <h2 id="about">About this site</h2>
   <p>
-    This is my personal website. It's built with Zola, a static site generator, and hosted on Cloudflare Pages.
+    This is my personal website. It's built with Astro and deployed on Cloudflare Pages.
   </p>
 
   <p>
     The footer image is of Point Ormond, St Kilda, Victoria.
   </p>
-
-  <script is:inline>
-    (function setupPhotoOrientation() {
-      const profilePhoto = document.getElementById('profile-photo');
-      if (!profilePhoto) return;
-
-      let motionActive = false;
-      let rafId = null;
-      let currentAngle = 0;
-      let targetAngle = 0;
-      const SMOOTHING = 0.12;
-      const FLAT_THRESHOLD = 3;
-      let lastStableAngle = 0;
-      let lastRawAngle = 0;
-      let unwrappedAngle = 0;
-      let hasAngle = false;
-
-      function applyRotation() {
-        const delta = targetAngle - currentAngle;
-        currentAngle += delta * SMOOTHING;
-        profilePhoto.style.transform = `rotate(${currentAngle}deg)`;
-
-        if (Math.abs(delta) > 0.1) {
-          rafId = window.requestAnimationFrame(applyRotation);
-        } else {
-          currentAngle = targetAngle;
-          profilePhoto.style.transform = `rotate(${currentAngle}deg)`;
-          rafId = null;
-        }
-      }
-
-      function scheduleRotation(angle) {
-        targetAngle = angle;
-        if (rafId === null) rafId = window.requestAnimationFrame(applyRotation);
-      }
-
-      function unwrapAngle(rawAngle) {
-        if (!hasAngle) {
-          lastRawAngle = rawAngle;
-          unwrappedAngle = rawAngle;
-          hasAngle = true;
-          return unwrappedAngle;
-        }
-
-        let delta = rawAngle - lastRawAngle;
-        if (delta > 180) delta -= 360;
-        if (delta < -180) delta += 360;
-        unwrappedAngle += delta;
-        lastRawAngle = rawAngle;
-        return unwrappedAngle;
-      }
-
-      function handleMotion(event) {
-        const gravity = event.accelerationIncludingGravity;
-        if (!gravity || typeof gravity.x !== 'number' || typeof gravity.y !== 'number') return;
-
-        const x = gravity.x;
-        const y = gravity.y;
-        const xyMagnitude = Math.hypot(x, y);
-        if (xyMagnitude < FLAT_THRESHOLD) {
-          scheduleRotation(lastStableAngle);
-          return;
-        }
-
-        const angle = Math.atan2(-x, -y) * (180 / Math.PI);
-        const smoothAngle = unwrapAngle(angle);
-        lastStableAngle = smoothAngle;
-        scheduleRotation(smoothAngle);
-      }
-
-      function handleOrientation(event) {
-        if (typeof event.gamma !== 'number' || typeof event.beta !== 'number') return;
-        const angle = -event.gamma;
-        const smoothAngle = unwrapAngle(angle);
-        lastStableAngle = smoothAngle;
-        scheduleRotation(smoothAngle);
-      }
-
-      async function requestMotionPermission() {
-        let motionGranted = true;
-        let orientationGranted = true;
-
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-          const result = await DeviceMotionEvent.requestPermission();
-          motionGranted = result === 'granted';
-        }
-
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          const result = await DeviceOrientationEvent.requestPermission();
-          orientationGranted = result === 'granted';
-        }
-
-        return { motionGranted, orientationGranted };
-      }
-
-      async function enableMotion() {
-        if (motionActive) return;
-
-        try {
-          const { motionGranted, orientationGranted } = await requestMotionPermission();
-          if (motionGranted && 'DeviceMotionEvent' in window) {
-            window.addEventListener('devicemotion', handleMotion, { passive: true });
-            motionActive = true;
-          }
-
-          if (!motionActive && orientationGranted && 'DeviceOrientationEvent' in window) {
-            window.addEventListener('deviceorientation', handleOrientation, { passive: true });
-            motionActive = true;
-          }
-        } catch (error) {
-          console.warn('Motion permission request failed:', error);
-        }
-      }
-
-      profilePhoto.style.cursor = 'pointer';
-      profilePhoto.addEventListener('click', enableMotion);
-    })();
-
-    (async function () {
-      const recentPostEl = document.getElementById('recent-post-1');
-      if (!recentPostEl) return;
-
-      function parseDate(dateStr) {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        return new Date(year, month - 1, day);
-      }
-
-      try {
-        const postsResponse = await fetch('/posts/');
-        const postsHtml = await postsResponse.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(postsHtml, 'text/html');
-        const postItems = doc.querySelectorAll('.post-item');
-
-        const allPosts = [];
-        postItems.forEach((item) => {
-          const dateStr = item.getAttribute('data-date');
-          const link = item.querySelector('.post-title');
-          if (dateStr && link) {
-            allPosts.push({
-              date: parseDate(dateStr),
-              url: link.getAttribute('href'),
-              title: link.textContent.trim(),
-            });
-          }
-        });
-
-        allPosts.sort((a, b) => b.date - a.date);
-        if (allPosts.length >= 1) {
-          recentPostEl.innerHTML = `<a href="${allPosts[0].url}">${allPosts[0].title}</a>`;
-        } else {
-          recentPostEl.innerHTML = '<a href="/posts/">my latest writing</a>';
-        }
-        recentPostEl.classList.remove('loading');
-      } catch (error) {
-        console.error('Failed to fetch latest post:', error);
-        recentPostEl.innerHTML = '<a href="/posts/">various topics</a>';
-        recentPostEl.classList.remove('loading');
-      }
-    })();
-  </script>
 </BaseLayout>

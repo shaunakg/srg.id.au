@@ -11,7 +11,7 @@ const { tags = [] } = Astro.props;
 {tags.length > 0 && (
   <div class="tags">
     {tags.map((tag) => (
-      <a href={`/tags/${slugifyTag(tag)}/`} class="tag">#{slugifyTag(tag)}</a>
+      <a href={`/tags/${slugifyTag(tag)}/`} class="tag">#{tag}</a>
     ))}
   </div>
 )}

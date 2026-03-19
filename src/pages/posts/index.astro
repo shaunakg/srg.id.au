@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import NewsletterSignup from '../../components/NewsletterSignup.astro';
-import { getPublishedPosts, getPostSlug } from '../../lib/posts';
+import { getPostHref, getPublishedPosts, isExternalHref } from '../../lib/posts';
 import { formatMonthDay } from '../../lib/site';
 
 const posts = await getPublishedPosts();
@@ -30,11 +30,16 @@ for (const post of posts) {
           {yearPosts.map((post) => (
             <div class="post-item" data-date={post.data.date.toISOString().slice(0, 10)}>
               <div class="post-header">
-                <a class="post-title" href={post.data.externalLink ?? `/posts/${getPostSlug(post)}/`}>
+                <a
+                  class="post-title"
+                  href={getPostHref(post)}
+                  target={isExternalHref(getPostHref(post)) ? '_blank' : undefined}
+                  rel={isExternalHref(getPostHref(post)) ? 'noopener noreferrer' : undefined}
+                >
                   {post.data.title}
                 </a>
               </div>
-              {(post.data.description || post.body) && (
+              {post.data.description && (
                 <div class="post-description">
                   <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
                 </div>
@@ -46,5 +51,5 @@ for (const post of posts) {
     ))}
   </div>
 
-  <a class="back" href="#" onclick="history.back()">&lt;- Back</a>
+  <a class="back" href="/">&lt;- Back</a>
 </BaseLayout>

@@ -2,22 +2,15 @@
 title: "Building Scalpel - a surgical rotation assistant"
 description: "Scalpel helps med students prepare for their surgical rotations by providing them with comprehensive information about any surgical procedure."
 date: "2025-12-05"
-draft: false
 slug: "scalpel"
 tags:
   - "project"
   - "llm"
   - "scalpel"
   - "medicine"
-disableComments: false
-disableToc: false
 ---
 
-import Figure from '../../components/mdx/Figure.astro'
-import Carousel from '../../components/mdx/Carousel.astro'
-import CarouselItem from '../../components/mdx/CarouselItem.astro'
-import VideoFigure from '../../components/mdx/VideoFigure.astro'
-import Callout from '../../components/mdx/Callout.astro'
+import MediaCarousel from '../../components/mdx/MediaCarousel';
 
 <Callout type="info" title="TL;DR">
 I created a super fast surgical procedure summary tool using Vite and React. Give it a go: [https://scalpel.srg.id.au](https://scalpel.srg.id.au)
@@ -83,23 +76,33 @@ However, I did not create Scalpel to be used daily. In fact, I've only used it m
 
 The point of creating Scalpel, and this post, is to demonstrate the use of LLMs in medical education. I recently attended <span class="hover-clarify" title="Association for Medical Education in Europe">AMEE</span> 2025 in Barcelona, where AI was a major theme. There were several sessions dedicated to AI in medicine and myriad booths with companies selling AI edtech products. 
 
-<Carousel>
-<CarouselItem src="/posts/scalpel/spain/sketchy-ddx.jpg" alt="Sketchy DDx">
-Sketchy's AI DDx product - creates a simulated patient that you can chat to in order to hone your differential diagnosis skills.
-</CarouselItem>
-
-    <CarouselItem src="/posts/scalpel/spain/stanford-ml.jpg" alt="Stanford ML">
-A lecture from Stanford on AI clinical simulation tools (specifically Clinical Mind AI).
-</CarouselItem>
-
-    <CarouselItem src="/posts/scalpel/spain/uicm-ml.jpg" alt="UICM ML">
-A lecture from the University of Illinois at Chicago on ML in medicine.
-</CarouselItem>
-    
-    <CarouselItem src="/posts/scalpel/spain/llm-taste.jpg" alt="LLM Taste">
-A lecture about LLMs in health professions education, specifically, how one can develop a taste for the quality of an LLM.
-</CarouselItem>
-</Carousel>
+<MediaCarousel
+  client:visible
+  items={[
+    {
+      src: '/posts/scalpel/spain/sketchy-ddx.jpg',
+      alt: "Sketchy's AI DDx product booth at AMEE 2025.",
+      caption:
+        "Sketchy's AI DDx product creates a simulated patient that you can chat to in order to hone your differential diagnosis skills.",
+    },
+    {
+      src: '/posts/scalpel/spain/stanford-ml.jpg',
+      alt: 'A Stanford lecture slide about AI clinical simulation tools.',
+      caption: 'A lecture from Stanford on AI clinical simulation tools, specifically Clinical Mind AI.',
+    },
+    {
+      src: '/posts/scalpel/spain/uicm-ml.jpg',
+      alt: 'A University of Illinois at Chicago lecture about machine learning in medicine.',
+      caption: 'A lecture from the University of Illinois at Chicago on machine learning in medicine.',
+    },
+    {
+      src: '/posts/scalpel/spain/llm-taste.jpg',
+      alt: 'A lecture on building taste for evaluating LLM quality in health professions education.',
+      caption:
+        'A lecture about LLMs in health professions education, specifically how one can develop a taste for the quality of an LLM.',
+    },
+  ]}
+/>
 
 What I did not find, however, was any lectures helping students or educators create their own learning tools. This was surprising to me, as I think it's obvious that customised learning leads to the best outcomes - that's why private tutors and personalised curricula are so popular. Furthermore, with LLMs in their current state, it's relatively easy to create these tools for ourselves.
 

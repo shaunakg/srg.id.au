@@ -1,4 +1,5 @@
 ---
+import NewsletterSignupIsland from './react/NewsletterSignup';
 import { site } from '../lib/site';
 
 interface Props {
@@ -8,30 +9,4 @@ interface Props {
 const { variant = 'default' } = Astro.props;
 ---
 
-<section
-  class={`newsletter-signup newsletter-signup--${variant}`}
-  data-subscribe-root
-  data-phase="idle"
-  data-subscribe-endpoint={site.newsletterEndpoint}
-  data-subscribe-source={variant}
->
-  <div class="newsletter-pill">
-    <form class="newsletter-form" data-subscribe-form novalidate>
-      <span class="newsletter-prompt" aria-hidden="true">want to subscribe?</span>
-      <label class="sr-only" for={`newsletter-email-${variant}`}>Email address</label>
-      <input
-        id={`newsletter-email-${variant}`}
-        class="newsletter-email"
-        type="email"
-        name="email"
-        inputmode="email"
-        autocomplete="email"
-        required
-        placeholder="enter your email"
-      />
-      <button class="newsletter-submit" type="submit" aria-label="Subscribe">[yes]</button>
-    </form>
-    <p class="newsletter-loading" data-subscribe-loading aria-hidden="true">just a sec...</p>
-    <p class="newsletter-status" data-subscribe-status aria-live="polite" aria-atomic="true"></p>
-  </div>
-</section>
+<NewsletterSignupIsland client:idle endpoint={site.newsletterEndpoint} variant={variant} />

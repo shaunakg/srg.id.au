@@ -1,4 +1,7 @@
 ---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+
 interface Props {
   src: string;
   alt?: string;
@@ -9,11 +12,24 @@ interface Props {
 }
 
 const { src, alt = '', title, link, class: className, border } = Astro.props;
+const imageStyle = border ? `border:${border}px solid black` : undefined;
+const optimizablePostImages = import.meta.glob('../../assets/posts/**/*.{png,jpg,jpeg,webp,avif}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, ImageMetadata>;
+
+const optimizedImageSrc = src.startsWith('/posts/')
+  ? optimizablePostImages[`../../assets${src}`]
+  : undefined;
 ---
 
 <figure class={className}>
   <a href={link ?? src}>
-    <img src={src} alt={alt} style={border ? `border:${border}px solid black` : undefined} />
+    {optimizedImageSrc ? (
+      <Image src={optimizedImageSrc} alt={alt} loading="lazy" decoding="async" style={imageStyle} />
+    ) : (
+      <img src={src} alt={alt} loading="lazy" decoding="async" style={imageStyle} />
+    )}
   </a>
   <figcaption>
     {title && <h4>{title}</h4>}
