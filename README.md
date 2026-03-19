@@ -1,27 +1,27 @@
 # srg.id.au
 
-Personal site built with Astro and deployed on Cloudflare Pages.
+Personal site built with Astro and deployed on Cloudflare Workers.
 
 ## Local development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## Quality checks
 
 ```bash
-npm run build
-npm run check
+pnpm run build
+pnpm run check
 ```
 
-## Cloudflare Pages setup
+## Cloudflare Workers setup
 
-Set these Pages secrets/variables:
+Set the Worker secret:
 
 ```bash
-npx wrangler secret put LISTMONK_API_TOKEN
+pnpm exec wrangler secret put LISTMONK_API_TOKEN
 ```
 
 - `LISTMONK_API_TOKEN`: required
@@ -41,20 +41,27 @@ ALLOWED_ORIGINS=https://srg.id.au,https://www.srg.id.au
 Generate local Cloudflare types when bindings change:
 
 ```bash
-npm run cf:typegen
+pnpm run cf:typegen
 ```
 
-Build and run the site with Pages Functions locally when needed:
+Build and preview the Worker locally:
 
 ```bash
-npm run build
-npm run cf:dev
+pnpm run build
+pnpm run preview
 ```
 
-For local Pages Function testing, provide the Listmonk credentials in your shell before `npm run cf:dev`.
+Deploy the Worker:
+
+```bash
+pnpm run deploy
+```
+
+For local preview or deploy, provide the Listmonk credentials through Wrangler secrets or local Worker vars before running the command.
 
 ## Notes
 
 - Static assets that should be served as-is live in `public/`
 - Blog content lives in `src/content/posts/`
-- Newsletter subscriptions are proxied through Cloudflare Pages in `functions/api/subscribe.ts`
+- Worker output is generated into `dist/server/`, with the deploy config at `dist/server/wrangler.json`
+- Newsletter subscriptions are proxied through the Worker endpoint in `src/pages/api/subscribe.ts`

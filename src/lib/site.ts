@@ -7,7 +7,7 @@ export const site = {
   twitter: 'https://x.com/2vectorfoil',
   twitterHandle: '@2vectorfoil',
   domain: 'srg.id.au',
-  newsletterEndpoint: '/api/subscribe',
+  newsletterEndpoint: '/api/subscribe/',
   analyticsId: 'G-P80KQB5DMX',
   utterancesRepo: 'shaunakg/srg.id.au',
   defaultOgImage: '/og.png',

@@ -1,10 +1,16 @@
-interface Env {
+import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
+
+export const prerender = false;
+
+type WorkerEnv = typeof env;
+type SubscriptionWorkerEnv = WorkerEnv & {
   ALLOWED_ORIGINS?: string;
   LISTMONK_API_TOKEN?: string;
   LISTMONK_API_USER?: string;
   LISTMONK_LIST_ID?: string;
   LISTMONK_URL?: string;
-}
+};
 
 interface SubscribeRequestBody {
   email?: unknown;
@@ -28,9 +34,9 @@ interface ListmonkPayload {
 
 const DEFAULT_LISTMONK_URL = 'https://lists.a.srg.id.au';
 
-function corsHeaders(request: Request, env: Env) {
+function corsHeaders(request: Request, workerEnv: SubscriptionWorkerEnv) {
   const origin = request.headers.get('Origin');
-  const configured = (env.ALLOWED_ORIGINS || '')
+  const configured = (workerEnv.ALLOWED_ORIGINS || '')
     .split(',')
     .map((entry) => entry.trim())
     .filter(Boolean);
@@ -52,12 +58,17 @@ function corsHeaders(request: Request, env: Env) {
   };
 }
 
-function jsonResponse(request: Request, env: Env, status: number, payload: unknown) {
+function jsonResponse(
+  request: Request,
+  workerEnv: SubscriptionWorkerEnv,
+  status: number,
+  payload: unknown
+) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      ...corsHeaders(request, env),
+      ...corsHeaders(request, workerEnv),
     },
   });
 }
@@ -139,15 +150,15 @@ async function parseRequestBody(request: Request): Promise<SubscribeRequestBody>
 }
 
 async function listmonkRequest(
-  env: Env,
+  workerEnv: SubscriptionWorkerEnv,
   method: string,
   path: string,
   body?: Record<string, unknown> | null,
   query?: Record<string, string | number | undefined | null>
 ) {
-  const baseUrl = normalizeBaseUrl(env.LISTMONK_URL);
-  const username = env.LISTMONK_API_USER || 'web';
-  const token = env.LISTMONK_API_TOKEN;
+  const baseUrl = normalizeBaseUrl(workerEnv.LISTMONK_URL);
+  const username = workerEnv.LISTMONK_API_USER || 'web';
+  const token = workerEnv.LISTMONK_API_TOKEN;
 
   if (!token) {
     return {
@@ -194,12 +205,14 @@ async function listmonkRequest(
 }
 
 async function ensureSubscriberInList(
-  env: Env,
+  workerEnv: SubscriptionWorkerEnv,
   email: string,
   listId: number,
   attribUpdates: Record<string, string>
 ) {
-  const search = await listmonkRequest(env, 'GET', '/api/subscribers', null, { search: email });
+  const search = await listmonkRequest(workerEnv, 'GET', '/api/subscribers', null, {
+    search: email,
+  });
   if (!search.ok) {
     return {
       message: messageFromPayload(search.payload, "sorry, something's broken."),
@@ -224,7 +237,7 @@ async function ensureSubscriberInList(
     return { alreadySubscribed: true, ok: true };
   }
 
-  const update = await listmonkRequest(env, 'PUT', `/api/subscribers/${subscriber.id}`, {
+  const update = await listmonkRequest(workerEnv, 'PUT', `/api/subscribers/${subscriber.id}`, {
     attribs: nextAttribs || {},
     email: subscriber.email || email,
     lists: hasList ? listIds : [...new Set([...listIds, listId])],
@@ -243,18 +256,19 @@ async function ensureSubscriberInList(
   return { alreadySubscribed: hasList, ok: true };
 }
 
-export const onRequestOptions: PagesFunction<Env> = async ({ request, env }) =>
+export const OPTIONS: APIRoute = ({ request }) =>
   new Response(null, {
     status: 204,
-    headers: corsHeaders(request, env),
+    headers: corsHeaders(request, env as SubscriptionWorkerEnv),
   });
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const POST: APIRoute = async ({ request }) => {
+  const workerEnv = env as SubscriptionWorkerEnv;
   let body: SubscribeRequestBody = {};
   try {
     body = await parseRequestBody(request);
   } catch {
-    return jsonResponse(request, env, 400, {
+    return jsonResponse(request, workerEnv, 400, {
       message: 'Invalid request body.',
       ok: false,
     });
@@ -264,15 +278,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     .trim()
     .toLowerCase();
   if (!email || !isValidEmail(email)) {
-    return jsonResponse(request, env, 400, {
+    return jsonResponse(request, workerEnv, 400, {
       message: 'Please enter a valid email address.',
       ok: false,
     });
   }
 
-  const parsedListId = Number(env.LISTMONK_LIST_ID || '3');
+  const parsedListId = Number(workerEnv.LISTMONK_LIST_ID || '3');
   if (!Number.isInteger(parsedListId) || parsedListId <= 0) {
-    return jsonResponse(request, env, 500, {
+    return jsonResponse(request, workerEnv, 500, {
       message: "sorry, something's broken.",
       ok: false,
     });
@@ -290,10 +304,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     status: 'enabled',
   };
 
-  const create = await listmonkRequest(env, 'POST', '/api/subscribers', createPayload);
+  const create = await listmonkRequest(workerEnv, 'POST', '/api/subscribers', createPayload);
 
   if (create.ok) {
-    return jsonResponse(request, env, 200, {
+    return jsonResponse(request, workerEnv, 200, {
       already_subscribed: false,
       message: 'Subscribed successfully.',
       ok: true,
@@ -304,15 +318,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const isDuplicate = create.status === 409 || /already exists/i.test(createMessage);
 
   if (isDuplicate) {
-    const ensured = await ensureSubscriberInList(env, email, parsedListId, subscribeAttribs);
+    const ensured = await ensureSubscriberInList(workerEnv, email, parsedListId, subscribeAttribs);
     if (!ensured.ok) {
-      return jsonResponse(request, env, 502, {
+      return jsonResponse(request, workerEnv, 502, {
         message: ensured.message || 'Could not complete subscription.',
         ok: false,
       });
     }
 
-    return jsonResponse(request, env, 200, {
+    return jsonResponse(request, workerEnv, 200, {
       already_subscribed: !!ensured.alreadySubscribed,
       message: ensured.alreadySubscribed ? 'You are already subscribed.' : 'Subscription updated.',
       ok: true,
@@ -320,13 +334,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   if (create.status >= 400 && create.status < 500) {
-    return jsonResponse(request, env, 400, {
+    return jsonResponse(request, workerEnv, 400, {
       message: createMessage,
       ok: false,
     });
   }
 
-  return jsonResponse(request, env, 502, {
+  return jsonResponse(request, workerEnv, 502, {
     message: 'Subscription service is temporarily unavailable.',
     ok: false,
   });
