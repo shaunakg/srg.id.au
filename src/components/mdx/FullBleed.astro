@@ -1,0 +1,29 @@
+---
+interface Props {
+  class?: string;
+  maxWidth?: string;
+}
+
+const { class: className = '', maxWidth = '1200px' } = Astro.props;
+---
+
+<div class={`full-bleed ${className}`.trim()} style={`--full-bleed-max:${maxWidth};`}>
+  <slot />
+</div>
+
+<style>
+  .full-bleed {
+    width: min(var(--full-bleed-max), calc(100vw - 40px));
+    margin: 1.75rem auto;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  @media (max-width: 700px) {
+    .full-bleed {
+      width: 100vw;
+      margin-block: 1.5rem;
+    }
+  }
+</style>

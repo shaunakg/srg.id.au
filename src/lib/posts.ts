@@ -3,6 +3,10 @@ import { readingMinutes, slugifyTag } from './site';
 
 export type PostEntry = CollectionEntry<'posts'>;
 
+function shouldIncludeDraftPosts() {
+  return import.meta.env.DEV;
+}
+
 export async function getAllPosts() {
   const posts = await getCollection('posts');
   return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
@@ -10,6 +14,10 @@ export async function getAllPosts() {
 
 export async function getPublishedPosts() {
   const posts = await getAllPosts();
+  if (shouldIncludeDraftPosts()) {
+    return posts;
+  }
+
   return posts.filter((post) => !post.data.draft);
 }
 

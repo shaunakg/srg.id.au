@@ -1,0 +1,62 @@
+---
+import BrainAtlasIsland from '../react/BrainAtlasIsland';
+import '../react/brain-atlas/BrainAtlas.scss';
+
+interface Props {
+  caption?: string;
+  title?: string;
+  authorLabel?: string;
+  pathLabel?: string;
+  dateLabel?: string;
+}
+
+const {
+  caption = 'An interactive reconstruction of my segmented MRI scan. Drag to rotate, zoom to inspect structures, and hover highlighted regions to see what each part does.',
+  title = 'Chopping my brain to bits',
+  authorLabel = 'Shaunak Gadkari',
+  pathLabel = 'srg.id.au/posts/brain',
+  dateLabel = '',
+} = Astro.props;
+---
+
+<figure class="brain-atlas-figure">
+  <BrainAtlasIsland client:visible title={title} authorLabel={authorLabel} pathLabel={pathLabel} dateLabel={dateLabel} />
+  <noscript>
+    <div class="brain-atlas-figure__noscript">
+      <img src="/posts/brain/skull.gif" alt="Animated skull render derived from the MRI scan." loading="lazy" decoding="async" />
+      <p>The interactive 3D brain atlas requires JavaScript. This fallback shows the original MRI-derived skull render instead.</p>
+    </div>
+  </noscript>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .brain-atlas-figure {
+    margin: 0;
+  }
+
+  .brain-atlas-figure figcaption {
+    max-width: min(65ch, calc(100vw - 40px));
+    margin: 0.9rem auto 0;
+  }
+
+  .brain-atlas-figure__noscript {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .brain-atlas-figure__noscript img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    border: 1px solid rgba(85, 96, 85, 0.12);
+  }
+
+  .brain-atlas-figure__noscript p {
+    margin: 0;
+    color: rgba(10, 10, 10, 0.65);
+    font-size: 0.95rem;
+  }
+</style>

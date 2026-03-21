@@ -22,11 +22,13 @@
     "@astrojs/rss": "^4.0.17",
     "@astrojs/sitemap": "^3.7.1",
     "astro": "^6.0.6",
+    "meshoptimizer": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "remark-gfm": "^4.0.1",
     "sass": "^1.93.2",
     "sharp": "^0.34.5",
+    "three": "^0.183.2",
     "typescript": "^5.9.3",
     "zod": "^4.1.12"
   },
@@ -34,6 +36,7 @@
     "@astrojs/check": "^0.9.4",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^5.1.4",
     "devalue": "^5.1.1",
     "wrangler": "^4.75.0"

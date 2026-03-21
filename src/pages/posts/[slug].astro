@@ -4,13 +4,14 @@ import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import NewsletterSignup from '../../components/NewsletterSignup.astro';
 import PostFootnotes from '../../components/PostFootnotes.astro';
+import PostHero from '../../components/PostHero.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import TagList from '../../components/TagList.astro';
 import UtterancesComments from '../../components/UtterancesComments.astro';
 import { mdxComponents } from '../../components/mdx';
 import { getImageDimensions } from '../../lib/image-metadata';
 import { getPostReadingTime, getPostSlug, getPublishedPosts, isPublishedPostPage } from '../../lib/posts';
-import { formatDisplayDate } from '../../lib/site';
+import { formatDisplayDate, site } from '../../lib/site';
 import { filterTocHeadings } from '../../lib/toc';
 
 export async function getStaticPaths() {
@@ -33,6 +34,9 @@ const titleImageDimensions = post.data.useImageAsTitle
 const featureImageDimensions = post.data.featureImage
   ? await getImageDimensions(post.data.featureImage)
   : undefined;
+const heroReplacesTitle = post.data.hero?.replaceTitle ?? false;
+const pathLabel = `${site.domain}/posts/${getPostSlug(post)}`;
+const dateLabel = formatDisplayDate(post.data.date);
 ---
 
 <BaseLayout
@@ -46,19 +50,17 @@ const featureImageDimensions = post.data.featureImage
   tags={post.data.tags}
   bodyClass={bodyClass}
 >
-  {post.data.bannerIframe ? (
-    <h1 class="title title-iframe">
-      <span class="sr-only">{post.data.title}</span>
-      <div class="post-banner-frame">
-        <iframe
-          class="post-banner-iframe"
-          src={post.data.bannerIframe}
-          title={post.data.title}
-          loading="eager"
-        ></iframe>
-      </div>
-    </h1>
-  ) : post.data.useImageAsTitle ? (
+  {post.data.hero && (
+    <PostHero
+      title={post.data.title}
+      authorLabel={site.author}
+      pathLabel={pathLabel}
+      dateLabel={dateLabel}
+      hero={post.data.hero}
+    />
+  )}
+
+  {!heroReplacesTitle && (post.data.useImageAsTitle ? (
     <h1 class="title title-image">
       {titleImageDimensions ? (
         <Image
@@ -76,16 +78,14 @@ const featureImageDimensions = post.data.featureImage
     </h1>
   ) : (
     <h1 class="title">{post.data.title}</h1>
-  )}
+  ))}
 
-  {!post.data.bannerIframe && (
-    <p class="subtitle">
-      <span class="date">{formatDisplayDate(post.data.date)}</span>
-      <span class="readtime">{readingTime} minute read</span>
-    </p>
-  )}
+  <p class="subtitle">
+    <span class="date">{formatDisplayDate(post.data.date)}</span>
+    <span class="readtime">{readingTime} minute read</span>
+  </p>
 
-  {post.data.featureImage && !post.data.bannerIframe && (
+  {post.data.featureImage && (
     <figure class="feature-image">
       {featureImageDimensions ? (
         <Image

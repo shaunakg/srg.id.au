@@ -1,0 +1,48 @@
+---
+import BrainAtlas from './mdx/BrainAtlas.astro';
+import FullBleed from './mdx/FullBleed.astro';
+
+interface PostHeroConfig {
+  type: 'brain-atlas';
+  fullBleed?: boolean;
+  replaceTitle?: boolean;
+  caption?: string;
+  maxWidth?: string;
+}
+
+interface Props {
+  title: string;
+  authorLabel: string;
+  pathLabel: string;
+  dateLabel: string;
+  hero: PostHeroConfig;
+}
+
+const { title, authorLabel, pathLabel, dateLabel, hero } = Astro.props;
+---
+
+{hero.replaceTitle && <h1 class="sr-only">{title}</h1>}
+
+{hero.fullBleed ? (
+  <FullBleed maxWidth={hero.maxWidth ?? '1220px'}>
+    {hero.type === 'brain-atlas' && (
+      <BrainAtlas
+        caption={hero.caption ?? ''}
+        title={title}
+        authorLabel={authorLabel}
+        pathLabel={pathLabel}
+        dateLabel={dateLabel}
+      />
+    )}
+  </FullBleed>
+) : (
+  hero.type === 'brain-atlas' && (
+    <BrainAtlas
+      caption={hero.caption ?? ''}
+      title={title}
+      authorLabel={authorLabel}
+      pathLabel={pathLabel}
+      dateLabel={dateLabel}
+    />
+  )
+)}

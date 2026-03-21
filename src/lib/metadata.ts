@@ -1,4 +1,4 @@
-import { getKnownImageDimensions, type ImageDimensions } from './image-metadata';
+import { getKnownImageDimensions, type ImageDimensions } from './image-metadata-map';
 import { absoluteUrl, site } from './site';
 
 interface MetadataInput {

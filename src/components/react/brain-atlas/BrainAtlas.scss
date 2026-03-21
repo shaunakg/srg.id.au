@@ -1,0 +1,218 @@
+.brain-atlas {
+  --brain-accent: #556055;
+  --brain-ink: #0a0a0a;
+  --brain-muted: rgba(10, 10, 10, 0.62);
+  --brain-border: rgba(85, 96, 85, 0.18);
+  --brain-surface: rgba(255, 255, 255, 0.92);
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: clamp(26rem, 70vh, 52rem);
+  overflow: hidden;
+  border-radius: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(85, 96, 85, 0.12);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(247, 244, 239, 0.95), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, #fffdf9 0%, #ffffff 72%);
+  color: var(--brain-ink);
+  font-family: inherit;
+  letter-spacing: normal;
+  isolation: isolate;
+}
+
+.brain-atlas__backdrop,
+.brain-atlas__stage,
+.brain-atlas__labels {
+  position: absolute;
+  inset: 0;
+}
+
+.brain-atlas__backdrop {
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.brain-atlas__backdrop.is-muted {
+  opacity: 0.3;
+}
+
+.brain-atlas__stage {
+  z-index: 1;
+  touch-action: none;
+}
+
+.brain-atlas__stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.brain-atlas__meta {
+  position: absolute;
+  max-width: calc(100% - 2rem);
+  padding: clamp(0.9rem, 2vw, 1.35rem);
+  color: rgba(10, 10, 10, 0.72);
+  font-size: clamp(0.72rem, 1.05vw, 0.92rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.brain-atlas__meta--top-left {
+  top: 0;
+  left: 0;
+}
+
+.brain-atlas__meta--top-right {
+  top: 0;
+  right: 0;
+  text-align: right;
+}
+
+.brain-atlas__meta--bottom-left {
+  left: 0;
+  bottom: 0;
+}
+
+.brain-atlas__title-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(3rem, 7vw, 5rem);
+}
+
+.brain-atlas__title {
+  max-width: min(10ch, 100%);
+  text-align: center;
+  text-wrap: balance;
+  font-size: clamp(3rem, 9vw, 7.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.brain-atlas__labels {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.brain-atlas__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.brain-atlas__line {
+  stroke: var(--brain-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.brain-atlas__label-list {
+  position: absolute;
+  inset: 0;
+}
+
+.brain-atlas__label {
+  position: absolute;
+  max-width: min(18rem, calc(100% - 1.5rem));
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--brain-border);
+  border-radius: 1rem;
+  background: var(--brain-surface);
+  box-shadow: 0 20px 44px rgba(20, 23, 20, 0.08);
+  color: var(--brain-ink);
+  opacity: 0;
+  transform: translate(-9999px, -9999px);
+  pointer-events: none;
+  transition: opacity 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  backdrop-filter: blur(10px);
+}
+
+.brain-atlas__label.is-active {
+  border-color: rgba(85, 96, 85, 0.55);
+  box-shadow: 0 24px 48px rgba(20, 23, 20, 0.12);
+}
+
+.brain-atlas__label-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+}
+
+.brain-atlas__label-description {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--brain-muted);
+}
+
+.brain-atlas__label-description a {
+  color: var(--brain-accent);
+  text-decoration-color: rgba(85, 96, 85, 0.3);
+  text-underline-offset: 0.15em;
+}
+
+.brain-atlas__fallback {
+  position: absolute;
+  inset: auto 1rem 1rem 1rem;
+  z-index: 3;
+  max-width: 24rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(158, 78, 65, 0.25);
+  border-radius: 1rem;
+  background: rgba(255, 247, 244, 0.95);
+  color: #7c2d12;
+  box-shadow: 0 20px 44px rgba(124, 45, 18, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 900px) {
+  .brain-atlas {
+    aspect-ratio: 4 / 3;
+    min-height: clamp(24rem, 62vh, 42rem);
+  }
+
+  .brain-atlas__title {
+    font-size: clamp(2.8rem, 11vw, 5.5rem);
+    max-width: 9ch;
+  }
+
+  .brain-atlas__label-description {
+    display: none;
+  }
+
+  .brain-atlas__label {
+    padding: 0.55rem 0.7rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .brain-atlas {
+    min-height: 68vw;
+    border-radius: 0;
+    border-inline: 0;
+  }
+
+  .brain-atlas__meta {
+    max-width: calc(100% - 1rem);
+    padding: 0.7rem 0.8rem;
+    font-size: 0.66rem;
+  }
+
+  .brain-atlas__title-wrap {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .brain-atlas__title {
+    font-size: clamp(2.5rem, 13vw, 4rem);
+    max-width: 8ch;
+  }
+}
