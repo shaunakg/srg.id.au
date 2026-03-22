@@ -1,0 +1,83 @@
+---
+import type { BrainScanFact } from '../../data/posts/brain/explorer';
+
+interface Props {
+  items: BrainScanFact[];
+}
+
+const { items } = Astro.props;
+---
+
+<section class="brain-scan-facts" aria-label="MRI scan facts">
+  <div class="brain-scan-facts__grid">
+    {items.map((item) => (
+      <article class="brain-scan-facts__card">
+        <p class="brain-scan-facts__label">{item.label}</p>
+        <h3>{item.value}</h3>
+        <p class="brain-scan-facts__note">{item.note}</p>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style lang="scss">
+  .brain-scan-facts {
+    margin: 1.25rem 0 1.75rem;
+  }
+
+  .brain-scan-facts__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .brain-scan-facts__card {
+    border: 1px solid rgba(85, 96, 85, 0.14);
+    border-radius: 1rem;
+    background: #faf8f4;
+    padding: 0.8rem 0.9rem 0.9rem;
+    min-width: 0;
+  }
+
+  .brain-scan-facts__label,
+  .brain-scan-facts__note {
+    margin: 0;
+  }
+
+  .brain-scan-facts__label {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(10, 10, 10, 0.56);
+  }
+
+  .brain-scan-facts__card h3 {
+    margin: 0.35rem 0 0.38rem;
+    font-size: 1.15rem;
+    line-height: 1.15;
+  }
+
+  .brain-scan-facts__note {
+    font-size: 0.93rem;
+    line-height: 1.45;
+    color: rgba(10, 10, 10, 0.72);
+  }
+
+  @media (max-width: 900px) {
+    .brain-scan-facts__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .brain-scan-facts__grid {
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+    }
+
+    .brain-scan-facts__card {
+      padding: 0.78rem 0.82rem 0.85rem;
+    }
+  }
+</style>

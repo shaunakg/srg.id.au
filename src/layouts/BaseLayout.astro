@@ -98,17 +98,6 @@ const metadata = buildPageMetadata({
     {metadata.structuredData && <script is:inline type="application/ld+json" set:html={metadata.structuredData} />}
     <ClientRouter />
 
-    {import.meta.env.DEV && (
-      <script type="module" is:inline>
-        import RefreshRuntime from '/@react-refresh';
-
-        RefreshRuntime.injectIntoGlobalHook(window);
-        window.$RefreshReg$ = () => {};
-        window.$RefreshSig$ = () => (type) => type;
-        window.__vite_plugin_react_preamble_installed__ = true;
-      </script>
-    )}
-
     {shouldLoadAnalytics && (
       <>
         <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${site.analyticsId}`}></script>

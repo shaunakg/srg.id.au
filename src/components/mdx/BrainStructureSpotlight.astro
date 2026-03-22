@@ -1,0 +1,323 @@
+---
+import type { BrainStructureSpotlightItem } from '../../data/posts/brain/explorer';
+
+interface Props {
+  items: BrainStructureSpotlightItem[];
+  title?: string;
+}
+
+const { items, title = 'A few structures I kept coming back to' } = Astro.props;
+const ids = items.map((item, index) => `brain-spotlight-${item.id}-${index}`);
+const rootId = `brain-structure-spotlight-${items.map((item) => item.id).join('-')}`;
+
+const formatMm3 = (value: number) => `${Math.round(value).toLocaleString()} mm³`;
+const formatDiff = (a: number, b: number) => {
+  const diff = Math.abs(a - b);
+  const larger = a > b ? 'atlas' : 'FreeSurfer';
+  return `${Math.round(diff).toLocaleString()} mm³ (${larger} larger)`;
+};
+---
+
+<section class="brain-structure-spotlight" aria-label={title} data-brain-structure-spotlight id={rootId}>
+  <header class="brain-structure-spotlight__header">
+    <h3>{title}</h3>
+  </header>
+
+  <div class="brain-structure-spotlight__tabs" role="tablist" aria-label={title}>
+    {items.map((item, index) => (
+      <button
+        type="button"
+        role="tab"
+        class={`brain-structure-spotlight__tab${index === 0 ? ' is-active' : ''}`}
+        aria-selected={index === 0 ? 'true' : 'false'}
+        aria-controls={`${ids[index]}-panel`}
+        data-spotlight-tab
+        data-spotlight-index={index}
+      >
+        {item.title}
+      </button>
+    ))}
+  </div>
+
+  <div class="brain-structure-spotlight__panels">
+    {items.map((item, index) => (
+      <article
+        id={`${ids[index]}-panel`}
+        class={`brain-structure-spotlight__panel${index === 0 ? ' is-active' : ''}`}
+        role="tabpanel"
+        aria-hidden={index === 0 ? 'false' : 'true'}
+        data-spotlight-panel
+        data-spotlight-index={index}
+      >
+        <div class="brain-structure-spotlight__images">
+          {item.sides.map((side) => (
+            <figure class="brain-structure-spotlight__image-card">
+              <img src={side.src} alt={side.alt} loading="lazy" decoding="async" />
+              <figcaption>{side.label}</figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <div class="brain-structure-spotlight__body">
+          <p class="brain-structure-spotlight__hook">{item.hook}</p>
+          <h4>{item.title}</h4>
+          <p>{item.description}</p>
+          <p class="brain-structure-spotlight__why">{item.whyItMattered}</p>
+
+          <div class="brain-structure-spotlight__stats">
+            {item.sides.map((side) => (
+              <section class="brain-structure-spotlight__stat-card">
+                <h5>{side.label}</h5>
+                <dl>
+                  <div>
+                    <dt>Atlas label</dt>
+                    <dd>{formatMm3(side.atlasMm3)}</dd>
+                  </div>
+                  <div>
+                    <dt>FreeSurfer</dt>
+                    <dd>{formatMm3(side.freesurferMm3)}</dd>
+                  </div>
+                  <div>
+                    <dt>Disagreement</dt>
+                    <dd>{formatDiff(side.atlasMm3, side.freesurferMm3)}</dd>
+                  </div>
+                </dl>
+              </section>
+            ))}
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<script is:inline>
+  document.querySelectorAll('[data-brain-structure-spotlight]').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll('[data-spotlight-tab]'));
+    const panels = Array.from(root.querySelectorAll('[data-spotlight-panel]'));
+
+    const activate = (index) => {
+      tabs.forEach((tab, tabIndex) => {
+        const isActive = tabIndex === index;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panels.forEach((panel, panelIndex) => {
+        const isActive = panelIndex === index;
+        panel.classList.toggle('is-active', isActive);
+        panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+      });
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activate(index));
+    });
+  });
+</script>
+
+<style lang="scss">
+  .brain-structure-spotlight {
+    margin: 1.5rem 0 2rem;
+  }
+
+  .brain-structure-spotlight__header {
+    margin-bottom: 0.75rem;
+  }
+
+  .brain-structure-spotlight__header h3 {
+    margin: 0;
+    font-size: 1.06rem;
+  }
+
+  .brain-structure-spotlight__tabs {
+    display: flex;
+    gap: 0.55rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .brain-structure-spotlight__tab {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(85, 96, 85, 0.16);
+    border-radius: 999px;
+    background: #faf8f4;
+    color: #0a0a0a;
+    padding: 0.46rem 0.78rem;
+    font: inherit;
+    font-size: 0.92rem;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease;
+  }
+
+  .brain-structure-spotlight__tab:hover,
+  .brain-structure-spotlight__tab.is-active {
+    background: #0a0a0a;
+    border-color: #0a0a0a;
+    color: #fff;
+  }
+
+  .brain-structure-spotlight__panel {
+    display: none;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+    gap: 0.9rem;
+    border: 1px solid rgba(85, 96, 85, 0.14);
+    border-radius: 1rem;
+    background: #faf8f4;
+    padding: 0.9rem;
+    min-width: 0;
+  }
+
+  .brain-structure-spotlight__panel.is-active {
+    display: grid;
+  }
+
+  .brain-structure-spotlight__images {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    min-width: 0;
+  }
+
+  .brain-structure-spotlight__image-card {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .brain-structure-spotlight__image-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 0.85rem;
+    border: 1px solid rgba(85, 96, 85, 0.12);
+    background: #111;
+  }
+
+  .brain-structure-spotlight__image-card figcaption {
+    margin-top: 0.42rem;
+    font-size: 0.84rem;
+    text-align: center;
+    color: rgba(10, 10, 10, 0.68);
+  }
+
+  .brain-structure-spotlight__body {
+    min-width: 0;
+  }
+
+  .brain-structure-spotlight__body h4,
+  .brain-structure-spotlight__body p,
+  .brain-structure-spotlight__stat-card h5,
+  .brain-structure-spotlight__stat-card dt,
+  .brain-structure-spotlight__stat-card dd {
+    margin: 0;
+  }
+
+  .brain-structure-spotlight__hook {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(10, 10, 10, 0.56);
+  }
+
+  .brain-structure-spotlight__body h4 {
+    margin: 0.26rem 0 0.45rem;
+    font-size: 1.18rem;
+  }
+
+  .brain-structure-spotlight__body p + p {
+    margin-top: 0.68rem;
+  }
+
+  .brain-structure-spotlight__why {
+    color: rgba(10, 10, 10, 0.82);
+  }
+
+  .brain-structure-spotlight__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+  }
+
+  .brain-structure-spotlight__stat-card {
+    border: 1px solid rgba(85, 96, 85, 0.12);
+    border-radius: 0.85rem;
+    background: #fff;
+    padding: 0.72rem;
+    min-width: 0;
+  }
+
+  .brain-structure-spotlight__stat-card h5 {
+    font-size: 0.96rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .brain-structure-spotlight__stat-card dl {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .brain-structure-spotlight__stat-card dt {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(10, 10, 10, 0.52);
+    margin-bottom: 0.12rem;
+  }
+
+  .brain-structure-spotlight__stat-card dd {
+    line-height: 1.35;
+  }
+
+  @media (max-width: 860px) {
+    .brain-structure-spotlight__tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 0.18rem;
+      scrollbar-width: none;
+    }
+
+    .brain-structure-spotlight__tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .brain-structure-spotlight__tab {
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    .brain-structure-spotlight__panel {
+      grid-template-columns: 1fr;
+      padding: 0.82rem;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .brain-structure-spotlight__images,
+    .brain-structure-spotlight__stats {
+      grid-template-columns: 1fr;
+    }
+
+    .brain-structure-spotlight__panel {
+      gap: 0.78rem;
+      border-radius: 0.9rem;
+      padding: 0.75rem;
+    }
+
+    .brain-structure-spotlight__image-card img {
+      aspect-ratio: 16 / 11;
+    }
+
+    .brain-structure-spotlight__tab {
+      padding: 0.42rem 0.7rem;
+      font-size: 0.88rem;
+    }
+  }
+</style>

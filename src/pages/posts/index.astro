@@ -27,25 +27,31 @@ for (const post of posts) {
       <>
         <h3 class="year-header">{year}</h3>
         <div class="year-group">
-          {yearPosts.map((post) => (
-            <div class="post-item" data-date={post.data.date.toISOString().slice(0, 10)}>
-              <div class="post-header">
-                <a
-                  class="post-title"
-                  href={getPostHref(post)}
-                  target={isExternalHref(getPostHref(post)) ? '_blank' : undefined}
-                  rel={isExternalHref(getPostHref(post)) ? 'noopener noreferrer' : undefined}
-                >
-                  {post.data.title}
-                </a>
-              </div>
-              {post.data.description && (
-                <div class="post-description">
-                  <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
+          {yearPosts.map((post) => {
+            const href = getPostHref(post);
+            const external = isExternalHref(href);
+
+            return (
+              <div class:list={['post-item', post.data.ogImage && 'has-og-image']} data-date={post.data.date.toISOString().slice(0, 10)}>
+                {post.data.ogImage ? (
+                  <aside class="post-og-image-preview" aria-hidden="true">
+                    <img src={post.data.ogImage} alt="" loading="lazy" decoding="async" />
+                  </aside>
+                ) : null}
+
+                <div class="post-header">
+                  <a class="post-title" href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
+                    {post.data.title}
+                  </a>
                 </div>
-              )}
-            </div>
-          ))}
+                {post.data.description && (
+                  <div class="post-description">
+                    <span class="post-date">{formatMonthDay(post.data.date)}</span> — {post.data.description}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </>
     ))}

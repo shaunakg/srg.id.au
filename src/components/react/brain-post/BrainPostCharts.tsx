@@ -114,7 +114,7 @@ export function FreeSurferRuntimeChart({
 }: {
   items: RuntimeStageDatum[];
 }) {
-  const [sortMode, setSortMode] = useState<'duration' | 'start'>('duration');
+  const [sortMode, setSortMode] = useState<'duration' | 'start'>('start');
 
   const data = useMemo(() => {
     const next = [...items];
@@ -127,7 +127,7 @@ export function FreeSurferRuntimeChart({
 
   return (
     <ChartFrame
-      title="Which FreeSurfer stages took the longest?"
+      title="What did FreeSurfer spend its time on?"
       controls={
         <>
           <ChartButton active={sortMode === 'duration'} onClick={() => setSortMode('duration')}>
@@ -187,7 +187,7 @@ export function BrainCompartmentChart({ items }: { items: SingleValueDatum[] }) 
 
   return (
     <ChartFrame
-      title="How much of the brain was cortex, white matter and everything else?"
+      title="How much of my brain is cortex, white matter and everything else?"
       controls={
         <>
           <ChartButton active={unit === 'cm3'} onClick={() => setUnit('cm3')}>

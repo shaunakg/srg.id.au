@@ -127,11 +127,11 @@ li {
 }
 
 ul li {
-    list-style-type: ">";
+    /* list-style-type: ">"; */
 }
 
 ol li {
-    list-style-type: decimal-leading-zero;
+    /* list-style-type: decimal-leading-zero; */
 }
 
 ul.sep-more li {
@@ -1505,7 +1505,7 @@ body.post-page .title:not(.title-image) {
     line-height: 1.8;
     margin: 1.5em 0;
     text-wrap: pretty;
-    hyphens: auto;
+    hyphens: manual;
 }
 
 // Footnotes (Gwern-like sidenotes + mobile modal)
@@ -1556,7 +1556,7 @@ body.post-page .title:not(.title-image) {
 .post-layout .toc,
 .mobile-toc-panel-nav {
     font-family: $font-body;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     line-height: 1.45;
 
     ul {
@@ -2025,6 +2025,7 @@ body.footnote-modal-open {
     }
 
     .mobile-toc-shell.is-open {
+        background: #fffaf2;
         border-bottom-color: rgba(143, 92, 56, 0.18);
     }
 
@@ -2932,9 +2933,46 @@ h3.year-header::before {
 }
 
 .post-item {
+    --post-og-preview-gap: clamp(36px, 4vw, 60px);
+    --post-og-preview-width: clamp(200px, 17vw, 264px);
+
+    position: relative;
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
+}
+
+.post-og-image-preview {
+    position: absolute;
+    right: calc(100% + var(--post-og-preview-gap));
+    top: 50%;
+    width: var(--post-og-preview-width);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-50%);
+    z-index: 1;
+    transition:
+        opacity 0.18s ease-out,
+        visibility 0.18s ease-out;
+
+    img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1200 / 630;
+        margin: 0;
+        border: 1px solid rgba(122, 90, 61, 0.12);
+        border-radius: 10px;
+        background: #f3efe9;
+        object-fit: cover;
+        object-position: center;
+    }
+}
+
+.post-item.has-og-image:hover .post-og-image-preview,
+.post-item.has-og-image:focus-within .post-og-image-preview {
+    opacity: 1;
+    visibility: visible;
 }
 
 .post-header {
@@ -2967,10 +3005,22 @@ a.post-title:hover {
     line-height: 1.5;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .post-og-image-preview {
+        transition: none;
+    }
+}
+
+@media (max-width: 1080px) {
+    .post-og-image-preview {
+        display: none;
+    }
+}
+
 .newsletter-signup {
     width: 100%;
     margin: 1.1rem 0 2rem;
-    font-family: $font-ui;
+    font-family: inherit;
     font-size: 1rem;
     letter-spacing: 0.01em;
 }

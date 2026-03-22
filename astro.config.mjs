@@ -17,6 +17,7 @@ export default defineConfig({
     prerenderEnvironment: 'node',
   }),
   integrations: [mdx({ remarkPlugins: [remarkGfm] }), react(), sitemap()],
+  prefetch: false,
   image: {
     domains: ['cdn.srg.id.au'],
   },

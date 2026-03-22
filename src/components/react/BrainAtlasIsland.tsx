@@ -17,71 +17,180 @@ interface BrainAtlasIslandProps {
 const manifest = manifestData as unknown as BrainAtlasManifest;
 const totalMeshes = manifest.meshes.length;
 
-function toReactNodes(markup: string): ReactNode[] {
+type InlineMarkupTag = 'a' | 'strong' | 'em' | 'code' | 'br';
+
+type InlineMarkupNode =
+  | {
+      type: 'text';
+      value: string;
+    }
+  | {
+      type: 'element';
+      tag: InlineMarkupTag;
+      attributes: Record<string, string>;
+      children: InlineMarkupNode[];
+    };
+
+type InlineMarkupParent = {
+  tag?: Exclude<InlineMarkupTag, 'br'>;
+  children: InlineMarkupNode[];
+};
+
+type InlineMarkupContainerNode = Extract<InlineMarkupNode, { type: 'element' }> & {
+  tag: Exclude<InlineMarkupTag, 'br'>;
+};
+
+const inlineTagPattern = /<(\/)?(a|strong|em|code|br)\b([^>]*)>/gi;
+const inlineAttributePattern = /([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>/]+)))?/g;
+const htmlEntities: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+};
+
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&(amp|lt|gt|quot|#39);/g, (match) => htmlEntities[match] ?? match);
+}
+
+function parseInlineAttributes(source: string): Record<string, string> {
+  const attributes: Record<string, string> = {};
+
+  for (const match of source.matchAll(inlineAttributePattern)) {
+    const [, name, doubleQuotedValue, singleQuotedValue, bareValue] = match;
+
+    if (!name) {
+      continue;
+    }
+
+    const value = doubleQuotedValue ?? singleQuotedValue ?? bareValue;
+    attributes[name.toLowerCase()] = value ? decodeHtmlEntities(value) : '';
+  }
+
+  return attributes;
+}
+
+function parseInlineMarkup(markup: string): InlineMarkupNode[] {
   if (!markup) {
     return [];
   }
 
-  if (typeof DOMParser === 'undefined') {
-    return [markup.replace(/<[^>]+>/g, '')];
-  }
+  const root: InlineMarkupParent = {
+    children: [],
+  };
+  const stack: InlineMarkupParent[] = [root];
+  let lastIndex = 0;
 
-  const parser = new DOMParser();
-  const documentFragment = parser.parseFromString(`<div>${markup}</div>`, 'text/html');
-  const root = documentFragment.body.firstElementChild;
-
-  if (!root) {
-    return [markup];
-  }
-
-  const renderNode = (node: ChildNode, key: string): ReactNode => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent;
+  const appendText = (value: string) => {
+    if (!value) {
+      return;
     }
 
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-      return null;
+    stack[stack.length - 1]?.children.push({
+      type: 'text',
+      value: decodeHtmlEntities(value),
+    });
+  };
+
+  for (const match of markup.matchAll(inlineTagPattern)) {
+    const [fullMatch, closingSlash, rawTag, attributeSource] = match;
+    const matchIndex = match.index ?? 0;
+
+    appendText(markup.slice(lastIndex, matchIndex));
+    lastIndex = matchIndex + fullMatch.length;
+
+    const tag = rawTag.toLowerCase() as InlineMarkupTag;
+    const current = stack[stack.length - 1];
+
+    if (!current) {
+      continue;
     }
 
-    const element = node as HTMLElement;
-    const children = Array.from(element.childNodes).map((child, index) => renderNode(child, `${key}-${index}`));
-    const tagName = element.tagName.toLowerCase();
+    if (closingSlash) {
+      if (stack.length > 1 && current.tag === tag) {
+        stack.pop();
+      }
+      continue;
+    }
 
-    if (tagName === 'a') {
-      const href = element.getAttribute('href') ?? '#';
+    if (tag === 'br') {
+      current.children.push({
+        type: 'element',
+        tag,
+        attributes: {},
+        children: [],
+      });
+      continue;
+    }
+
+    const elementNode: InlineMarkupContainerNode = {
+      type: 'element',
+      tag,
+      attributes: parseInlineAttributes(attributeSource),
+      children: [],
+    };
+
+    current.children.push(elementNode);
+    stack.push(elementNode);
+  }
+
+  appendText(markup.slice(lastIndex));
+
+  return root.children;
+}
+
+function mergeRelValues(existingRel: string | undefined, additions: string[]): string | undefined {
+  const tokens = new Set((existingRel ?? '').split(/\s+/).filter(Boolean));
+
+  for (const token of additions) {
+    tokens.add(token);
+  }
+
+  return tokens.size > 0 ? Array.from(tokens).join(' ') : undefined;
+}
+
+function renderInlineMarkup(nodes: InlineMarkupNode[], keyPrefix = 'description'): ReactNode[] {
+  const renderNode = (node: InlineMarkupNode, key: string): ReactNode => {
+    if (node.type === 'text') {
+      return node.value;
+    }
+
+    const children = node.children.map((child, index) => renderNode(child, `${key}-${index}`));
+
+    if (node.tag === 'a') {
+      const href = node.attributes.href ?? '#';
       const isExternal = /^[a-z][a-z\d+.-]*:/i.test(href);
+      const target = node.attributes.target ?? (isExternal ? '_blank' : undefined);
+      const rel = target === '_blank' ? mergeRelValues(node.attributes.rel, ['noreferrer', 'noopener']) : node.attributes.rel;
+
       return (
-        <a
-          key={key}
-          href={href}
-          target={isExternal ? '_blank' : undefined}
-          rel={isExternal ? 'noreferrer noopener' : undefined}
-        >
+        <a key={key} href={href} target={target} rel={rel}>
           {children}
         </a>
       );
     }
 
-    if (tagName === 'strong') {
+    if (node.tag === 'strong') {
       return <strong key={key}>{children}</strong>;
     }
 
-    if (tagName === 'em') {
+    if (node.tag === 'em') {
       return <em key={key}>{children}</em>;
     }
 
-    if (tagName === 'code') {
+    if (node.tag === 'code') {
       return <code key={key}>{children}</code>;
     }
 
-    if (tagName === 'br') {
-      return <br key={key} />;
-    }
-
-    return <span key={key}>{children}</span>;
+    return <br key={key} />;
   };
 
-  return Array.from(root.childNodes).map((node, index) => renderNode(node, `description-${index}`));
+  return nodes.map((node, index) => renderNode(node, `${keyPrefix}-${index}`));
+}
+
+function toReactNodes(markup: string): ReactNode[] {
+  return renderInlineMarkup(parseInlineMarkup(markup));
 }
 
 export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLabel }: BrainAtlasIslandProps) {
