@@ -1,0 +1,58 @@
+<svg width="1600" height="620" viewBox="0 0 1600 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="620" fill="#f7f3ef"/>
+  <style>
+    .title { font: 700 42px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #1f1b18; }
+    .subtitle { font: 500 22px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #5b5148; }
+    .boxTitle { font: 700 26px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #1f1b18; }
+    .boxText { font: 500 20px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #3f3831; }
+    .small { font: 500 18px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #6a5f54; }
+    .arrow { stroke: #7f6f62; stroke-width: 4; stroke-linecap: round; }
+  </style>
+  <text x="80" y="76" class="title">How the widget was built</text>
+  <text x="80" y="114" class="subtitle">one scan, two segmentation routes, thirty-seven little GLBs</text>
+
+  <rect x="80" y="170" width="300" height="220" rx="28" fill="#fffaf5" stroke="#d8cbc0" stroke-width="3"/>
+  <text x="110" y="220" class="boxTitle">1. Raw scan</text>
+  <text x="110" y="264" class="boxText">• research MRI</text>
+  <text x="110" y="302" class="boxText">• NIfTI volume</text>
+  <text x="110" y="340" class="boxText">• 0.75 mm voxels</text>
+  <text x="110" y="378" class="small">`sgbrain.nii`</text>
+
+  <rect x="470" y="170" width="300" height="220" rx="28" fill="#fffaf5" stroke="#d8cbc0" stroke-width="3"/>
+  <text x="500" y="220" class="boxTitle">2A. Atlas route</text>
+  <text x="500" y="264" class="boxText">• Harvard–Oxford atlas</text>
+  <text x="500" y="302" class="boxText">• ANTs registration</text>
+  <text x="500" y="340" class="boxText">• labels + stats + PNGs</text>
+  <text x="500" y="378" class="small">`mri_annotate.py`</text>
+
+  <rect x="470" y="410" width="300" height="140" rx="28" fill="#fffaf5" stroke="#d8cbc0" stroke-width="3"/>
+  <text x="500" y="458" class="boxTitle">2B. Surface route</text>
+  <text x="500" y="500" class="boxText">FreeSurfer `recon-all`</text>
+  <text x="500" y="534" class="small">left overnight, naturally</text>
+
+  <rect x="860" y="170" width="300" height="220" rx="28" fill="#fffaf5" stroke="#d8cbc0" stroke-width="3"/>
+  <text x="890" y="220" class="boxTitle">3. Mesh export</text>
+  <text x="890" y="264" class="boxText">• pial / aseg meshes</text>
+  <text x="890" y="302" class="boxText">• decimation + smoothing</text>
+  <text x="890" y="340" class="boxText">• compressed GLBs</text>
+  <text x="890" y="378" class="small">`freesurfer_export.py`</text>
+
+  <rect x="1250" y="170" width="270" height="220" rx="28" fill="#fffaf5" stroke="#d8cbc0" stroke-width="3"/>
+  <text x="1280" y="220" class="boxTitle">4. Website</text>
+  <text x="1280" y="264" class="boxText">• Three.js scene</text>
+  <text x="1280" y="302" class="boxText">• explode + labels</text>
+  <text x="1280" y="340" class="boxText">• widget on the blog</text>
+  <text x="1280" y="378" class="small">37 meshes / ~6 MB</text>
+
+  <path d="M380 280H450" class="arrow"/>
+  <path d="M770 280H840" class="arrow"/>
+  <path d="M1160 280H1230" class="arrow"/>
+  <path d="M620 390V402" class="arrow"/>
+  <path d="M770 480H840" class="arrow"/>
+
+  <circle cx="450" cy="280" r="7" fill="#7f6f62"/>
+  <circle cx="840" cy="280" r="7" fill="#7f6f62"/>
+  <circle cx="1230" cy="280" r="7" fill="#7f6f62"/>
+  <circle cx="620" cy="402" r="7" fill="#7f6f62"/>
+  <circle cx="840" cy="480" r="7" fill="#7f6f62"/>
+</svg>

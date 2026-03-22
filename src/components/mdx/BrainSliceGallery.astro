@@ -1,0 +1,124 @@
+---
+interface SliceItem {
+  src: string;
+  alt: string;
+  label: string;
+  note?: string;
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  items: SliceItem[];
+}
+
+const { title, description, items } = Astro.props;
+---
+
+<figure class="brain-slice-gallery">
+  {(title || description) && (
+    <header class="brain-slice-gallery__header">
+      {title && <h3>{title}</h3>}
+      {description && <p>{description}</p>}
+    </header>
+  )}
+
+  <div class="brain-slice-gallery__grid">
+    {items.map((item) => (
+      <div class="brain-slice-gallery__card">
+        <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+        <div class="brain-slice-gallery__card-meta">
+          <strong>{item.label}</strong>
+          {item.note && <span>{item.note}</span>}
+        </div>
+      </div>
+    ))}
+  </div>
+
+</figure>
+
+<style lang="scss">
+  .brain-slice-gallery {
+    margin: 1.5rem 0 2rem;
+  }
+
+  .brain-slice-gallery__header {
+    margin-bottom: 0.8rem;
+  }
+
+  .brain-slice-gallery__header h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+  }
+
+  .brain-slice-gallery__header p {
+    margin: 0;
+    color: rgba(10, 10, 10, 0.66);
+  }
+
+  .brain-slice-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .brain-slice-gallery__card {
+    overflow: hidden;
+    border: 1px solid rgba(85, 96, 85, 0.14);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(250, 248, 244, 0.94));
+  }
+
+  .brain-slice-gallery__card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border: 0;
+    border-radius: 0;
+    background: #111;
+  }
+
+  .brain-slice-gallery__card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    padding: 0.75rem 0.8rem 0.8rem;
+  }
+
+  .brain-slice-gallery__card-meta strong {
+    font-weight: 500;
+  }
+
+  .brain-slice-gallery__card-meta span {
+    color: rgba(10, 10, 10, 0.62);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 800px) {
+    .brain-slice-gallery__grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(88%, 88%);
+      grid-template-columns: none;
+      gap: 0.75rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 0.2rem;
+      scrollbar-width: none;
+    }
+
+    .brain-slice-gallery__grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .brain-slice-gallery__card {
+      scroll-snap-align: center;
+    }
+
+    .brain-slice-gallery__card img {
+      aspect-ratio: 16 / 11;
+    }
+  }
+</style>

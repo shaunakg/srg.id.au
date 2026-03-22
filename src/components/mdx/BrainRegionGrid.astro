@@ -1,0 +1,100 @@
+---
+interface RegionItem {
+  src: string;
+  alt: string;
+  label: string;
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  items: RegionItem[];
+}
+
+const { title, description, items } = Astro.props;
+---
+
+<figure class="brain-region-grid">
+  {(title || description) && (
+    <header class="brain-region-grid__header">
+      {title && <h3>{title}</h3>}
+      {description && <p>{description}</p>}
+    </header>
+  )}
+
+  <div class="brain-region-grid__grid">
+    {items.map((item) => (
+      <div class="brain-region-grid__card">
+        <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+        <div class="brain-region-grid__label">{item.label}</div>
+      </div>
+    ))}
+  </div>
+
+</figure>
+
+<style lang="scss">
+  .brain-region-grid {
+    margin: 1.5rem 0 2rem;
+  }
+
+  .brain-region-grid__header {
+    margin-bottom: 0.8rem;
+  }
+
+  .brain-region-grid__header h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+  }
+
+  .brain-region-grid__header p {
+    margin: 0;
+    color: rgba(10, 10, 10, 0.66);
+  }
+
+  .brain-region-grid__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .brain-region-grid__card {
+    overflow: hidden;
+    border: 1px solid rgba(85, 96, 85, 0.14);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(250, 248, 244, 0.94));
+  }
+
+  .brain-region-grid__card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border: 0;
+    border-radius: 0;
+    background: #111;
+  }
+
+  .brain-region-grid__label {
+    padding: 0.68rem 0.78rem 0.78rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 800px) {
+    .brain-region-grid__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .brain-region-grid__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .brain-region-grid__card img {
+      aspect-ratio: 16 / 12;
+    }
+  }
+</style>

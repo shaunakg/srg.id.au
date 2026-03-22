@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import manifestData from '../../data/posts/brain/regions.json';
-import type { BrainAtlasManifest, BrainAtlasScene } from './brain-atlas/scene';
+import type { BrainAtlasLoadingProgress, BrainAtlasManifest, BrainAtlasScene } from './brain-atlas/scene';
 
 interface LabelRefs {
   box?: HTMLDivElement | null;
@@ -15,6 +15,7 @@ interface BrainAtlasIslandProps {
 }
 
 const manifest = manifestData as unknown as BrainAtlasManifest;
+const totalMeshes = manifest.meshes.length;
 
 function toReactNodes(markup: string): ReactNode[] {
   if (!markup) {
@@ -91,6 +92,11 @@ export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLa
   const labelRefs = useRef(new Map<string, LabelRefs>());
   const [isReady, setIsReady] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState<BrainAtlasLoadingProgress>({
+    loaded: 0,
+    total: totalMeshes,
+    percent: 0,
+  });
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -120,6 +126,11 @@ export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLa
     loadStartedRef.current = true;
     setIsReady(false);
     setErrorMessage(null);
+    setLoadingProgress({
+      loaded: 0,
+      total: totalMeshes,
+      percent: 0,
+    });
 
     let resizeObserver: ResizeObserver | null = null;
 
@@ -146,7 +157,9 @@ export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLa
             line: refs.line,
           };
         },
-        onLoadingProgress: () => {},
+        onLoadingProgress: (progress) => {
+          setLoadingProgress(progress);
+        },
         onReady: () => {
           setIsReady(true);
         },
@@ -243,6 +256,10 @@ export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLa
     return map;
   }, []);
 
+  const isLoading = !isReady && !errorMessage;
+  const progressScale = Math.max(0, Math.min(loadingProgress.percent / 100, 1));
+  const safeLoadedMeshes = Math.max(0, Math.min(loadingProgress.loaded, loadingProgress.total));
+
   return (
     <div
       ref={rootRef}
@@ -306,6 +323,28 @@ export default function BrainAtlasIsland({ title, authorLabel, pathLabel, dateLa
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      <div
+        className={`brain-atlas__meta brain-atlas__meta--bottom-right brain-atlas__loading${isLoading ? '' : ' is-hidden'}`}
+        role="progressbar"
+        aria-label="Loading brain atlas meshes"
+        aria-hidden={isLoading ? 'false' : 'true'}
+        aria-valuemin={0}
+        aria-valuemax={loadingProgress.total}
+        aria-valuenow={safeLoadedMeshes}
+        aria-valuetext={`${safeLoadedMeshes} of ${loadingProgress.total} meshes loaded`}
+      >
+        <div className="brain-atlas__loading-row">
+          <span className="brain-atlas__loading-label">Loading meshes</span>
+          <span className="brain-atlas__loading-count">{safeLoadedMeshes}/{loadingProgress.total}</span>
+        </div>
+        <div className="brain-atlas__loading-track" aria-hidden="true">
+          <span
+            className="brain-atlas__loading-fill"
+            style={{ transform: `scaleX(${progressScale})` }}
+          />
         </div>
       </div>
 

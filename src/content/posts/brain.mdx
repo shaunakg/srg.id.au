@@ -1,10 +1,12 @@
 ---
 title: "Chopping my brain to bits"
-description: "Splitting myself apart."
+description: "From a research MRI NIfTI file to FreeSurfer surfaces, atlas labels and a Three.js widget."
 date: "2026-01-31"
 draft: true
 tags:
   - "medicine"
+  - "programming"
+  - "3d"
 hero:
   type: "brain-atlas"
   fullBleed: true
@@ -12,27 +14,69 @@ hero:
   maxWidth: "1220px"
 ---
 
+import BrainSliceGallery from '../../components/mdx/BrainSliceGallery.astro';
+import BrainRegionGrid from '../../components/mdx/BrainRegionGrid.astro';
+import {
+  FreeSurferRuntimeChart,
+  BrainCompartmentChart,
+  AtlasComparisonChart,
+} from '../../components/react/brain-post/BrainPostCharts';
+import {
+  freesurferRuntimeStages,
+  brainCompartmentVolumes,
+  atlasVsFreesurferVolumes,
+} from '../../data/posts/brain/charts';
 import MediaCarousel from '../../components/mdx/MediaCarousel';
 
-Have you ever seen your brain peeking out from behind your translucent skull, with your frontal lobe slightly visible through your empty eye sockets?
 
-<Figure src="/posts/brain/skull.gif" alt="A rotating, semi-translucent 3D model of a skull.">
-Well, I have!
-</Figure>
+Last year I had a brain MRI done as part of a research study at the University of Melbourne [Centre for Brain, Mind and Markets](https://www.unimelb.edu.au/cbmm/). Afterwards, the researchers sent me the raw scan. Throughout the last few months, I've been experimenting with it whenever I had some spare time, trying to coax out any interesting insights from my own brain.
 
-It turns out that when you get an MRI for a research study, they send you the raw DICOM data. However, the default viewer that they tell you to use is really only useful for radiologists. For the rest of us, it's just a bit creepy.
+The final result is the interactive widget above. To get there, I had to solve three separate problems:
 
-However, when I received the raw data, I wanted to see what I could do with it. Quite a lot, it turns out.
+1. how to turn a raw MRI volume into clean anatomical surfaces
+2. how to label those surfaces in a way that was understandable to non-radiologists
+3. how to compress and present the result so it would work as a website widget rather than a local demo
 
-In this post, I'll go over how I turned my raw MRI scan into the interactive graphic above, plus some other interesting data I was able to extract.
+This post is about that process from beginning to end.
 
-## The raw scan 
+## Starting with a NIfTI volume
 
-I received my MRI scan in NIfTI format, which is a raster file format for storing neuroimaging data. My specific scanner had a field strength of 7 Tesla, which is quite a lot stronger than the ~1.5T they use in hospitals. [^1]
+The scan arrived as a [NIfTI](https://nipy.org/nibabel/nifti_images.html) volume.[^1] NIfTI is the standard file format for a lot of neuroimaging work. Instead of storing a conventional image, it stores a 3D grid of voxel (3-dimensional pixel) intensities together with metadata that places each voxel in space.
 
-[^1]: Unfortunately, even though NIfTI supports 4-dimensional (3D + time) neuroimaging, I wasn't able to source longitudinal data from the researchers.
+I had my MRI at the [Melbourne Brain Centre Imaging Unit](https://medicine.unimelb.edu.au/school-structure/medicine/research/mbciu#equipment), in one of the two 7 Tesla MRI scanners in Australia. So, I already knew the magnetic field strength of my scan, but the NIfTI file had some additional metadaa:
 
-I was also provided a link to a [rudimentary online DICOM viewer](https://socr.umich.edu/HTML5/BrainViewer/). This let me view the MRI as a radiologist would, slice-by-slice, with some basic volume rendering.
+- I was scanned using an **MP2RAGE** sequence
+- at **0.75 mm isotropic** resolution
+- with dimensions of `224 × 320 × 320` voxels
+
+The last point is important, because while the raw MRI is just a collection of intensities, the quality of everything downstream - skull stripping, segmentation, surface extraction, meshing - is constrained by the dimensions of the input. I was very lucky to have a 7T study of my brain - hospital MRI machines usually top out at ~1.5T, which would have made the rest of my experiments difficult.[^2]
+
+[^2]: It should be noted that the difference between 1.5 Tesla and 7 Tesla is not "you get 4 and a half times more voxels per scan". Looking it up, it seems like I would recieve around 2× more linear detail.
+
+<BrainSliceGallery
+  items={[
+    {
+      src: '/posts/brain/slices/sagittal.gif',
+      alt: 'Animated sagittal sweep through the raw brain MRI scan.',
+      label: 'Sagittal',
+      note: 'Side view through the midline structures',
+    },
+    {
+      src: '/posts/brain/slices/coronal.gif',
+      alt: 'Animated coronal sweep through the raw brain MRI scan.',
+      label: 'Coronal',
+      note: 'Front-facing slice through both hemispheres',
+    },
+    {
+      src: '/posts/brain/slices/axial.gif',
+      alt: 'Animated axial sweep through the raw brain MRI scan.',
+      label: 'Axial',
+      note: 'Top-down slice through the cerebrum',
+    },
+  ]}
+/>
+
+I was referred by the researchs to a default online MRI viewer, which was good to explore through the individual slices, but not great to visualise the anatomy without having a radiology background. The rough volume rending was also quite creepy.
 
 <MediaCarousel
   client:load
@@ -52,14 +96,239 @@ I was also provided a link to a [rudimentary online DICOM viewer](https://socr.u
   ]}
 />
 
-This felt unsatisfying to me. I knew that, if a radiologist looked at my scan, they would be able to visualise the various structures inside my head that contributed to making me who I am. However, as a medical student, I didn't have the same intuition. 
+This definitely wasn't what I wanted to embed on my website, so the first task was to recover surface anatomy.
 
-In this blog post, I'll walk you through how I **a)** labelled the structures inside my brain and **b)** turned that data into something pleasant and intuitive to explore.
+## Doing heavy anatomical work with FreeSurfer
 
-## Stage 1: labeling the brain
+For that, I used [FreeSurfer](https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferWiki), which is one of the standard toolkits for cortical reconstruction and automated neuroanatomical segmentation.[^2]
 
-My first question was, can I label anything at all? Is it possible to find a model that can interpret an MRI slice and identify different structures, similar to a radiologist would?
+The core command was FreeSurfer's `recon-all`, which takes a structural MRI and runs a long sequence of steps including:
 
-I felt that this must be a solved problem, simply due to the sheer amount of neuroimaging studies that happen every day. So, I went searching for segmentation techniques.
+- intensity correction
+- skull stripping
+- volumetric segmentation of deep structures
+- white matter segmentation
+- tessellation into cortical surfaces
+- topology correction
+- white and pial surface estimation
+- spherical registration
+- cortical parcellation
 
-### Atlas-based segmentation
+This took quite a while on my M1 MacBook Air, so I left it running while I slept.
+
+<FreeSurferRuntimeChart client:visible items={freesurferRuntimeStages} />
+
+Looking back through, FreeSurfer spent the most time on the CA (canonical atlas) registration, which is basically normalising my brain slices to fit with a standardised "atlas", like the [Harvard-Oxford Atlas](https://scalablebrainatlas.incf.org/human/HOA06). Since every brain is different, FreeSurfer uses something called a *non-linear transform* to manipulate each image to fit a standard anatomical mapping.
+
+By the end of this stage I had what I needed for a first pass: an automated segmentation of the brain, hemisphere surfaces, and enough geometry to export crude 3D models.
+
+## Writing a script to label the scan more explicitly
+
+The next step was to make the image easier to inspect structure by structure. For that I wrote `mri_annotate.py`.
+
+The purpose of this script was not to replace FreeSurfer. It was to answer a different question: given a raw structural scan, can I quickly produce a labelled version of the volume, plus some visual checks and useful region-level summaries?
+
+Reading back through the script now, it does four main things:
+
+1. loads the MRI volume
+2. fetches the **Harvard-Oxford** cortical and subcortical atlases[^3]
+3. if **ANTs** is available, registers the subject scan to MNI space and warps the atlas back into subject space
+4. writes out a combined label map, region statistics, quick-look overlays, per-region snapshots, and optional meshes
+
+That registration step is the important one. If you simply resample an atlas onto a subject scan without a good spatial transform, the labels are only loosely informative. With a proper nonlinear warp, the result becomes much more useful for exploration.
+
+The script is also careful about failure modes. If ANTs is unavailable, it falls back to a naive resampling path and explicitly warns that this is only reasonable if the input scan is already in MNI space. That is exactly how exploratory tooling should behave: be useful when possible, but honest about its limitations.
+
+<Figure src="/posts/brain/quicklook-overlays.png" alt="Three orthogonal MRI slices with atlas segmentation overlays.">
+The quick-look overlay from the atlas pipeline. This was mainly a debugging and sanity-check tool: enough information to see whether the warped labels were landing in the right anatomical neighbourhoods.
+</Figure>
+
+The same script also generated per-region snapshots for selected structures.
+
+<BrainRegionGrid
+  items={[
+    {
+      src: '/posts/brain/regions/004_Left_Thalamus.png',
+      alt: 'Atlas-based snapshot of the left thalamus.',
+      label: 'Left thalamus',
+    },
+    {
+      src: '/posts/brain/regions/015_Right_Thalamus.png',
+      alt: 'Atlas-based snapshot of the right thalamus.',
+      label: 'Right thalamus',
+    },
+    {
+      src: '/posts/brain/regions/009_Left_Hippocampus.png',
+      alt: 'Atlas-based snapshot of the left hippocampus.',
+      label: 'Left hippocampus',
+    },
+    {
+      src: '/posts/brain/regions/019_Right_Hippocampus.png',
+      alt: 'Atlas-based snapshot of the right hippocampus.',
+      label: 'Right hippocampus',
+    },
+    {
+      src: '/posts/brain/regions/010_Left_Amygdala.png',
+      alt: 'Atlas-based snapshot of the left amygdala.',
+      label: 'Left amygdala',
+    },
+    {
+      src: '/posts/brain/regions/020_Right_Amygdala.png',
+      alt: 'Atlas-based snapshot of the right amygdala.',
+      label: 'Right amygdala',
+    },
+  ]}
+/>
+
+This stage taught me something important: there is a difference between a segmentation that is *technically valid* and one that is *good for communication*. The atlas route produced labels quickly and gave me structure names and region volumes. That made it a good tool for understanding the scan. But it was not yet the best source of final geometry.
+
+## Writing a second script to export usable meshes
+
+To solve the geometry problem properly, I wrote a second script, `freesurfer_export.py`.
+
+This script sits on top of FreeSurfer's outputs and turns them into web-friendly meshes. The interesting part is that it handles cortex and deep structures differently.
+
+### Cortical meshes
+
+For cortical regions, the script uses FreeSurfer's reconstructed surfaces together with the cortical annotation maps. Conceptually, it does this:
+
+- load the hemisphere surface
+- load the annotation that assigns an anatomical label to each surface vertex
+- collect all faces whose vertices belong to a given label
+- remap those vertices into a standalone mesh for that region
+- optionally decimate and smooth the mesh
+- export it in a browser-friendly format
+
+That is a much better strategy than trying to re-derive the cortex from the raw intensity volume. FreeSurfer has already done the hard work of reconstructing the cortical sheet.
+
+### Subcortical meshes
+
+For subcortical structures, the script instead works from the volumetric segmentation. Here the logic is different:
+
+- isolate one labelled structure as a binary mask
+- crop to its bounding box
+- run marching cubes to extract a surface
+- apply the image affine so the vertices end up in millimetre space
+- optionally decimate and smooth the result
+- export it
+
+This split is important. The cortex is naturally surface-based after FreeSurfer reconstruction. Deep structures are naturally volume-based until you explicitly polygonise them.
+
+### Making the meshes small enough for the web
+
+The other part of `freesurfer_export.py` that mattered for the final result was size optimisation.
+
+The script supports:
+
+- mesh decimation
+- optional Taubin smoothing
+- export to `GLB`
+- optional `gltfpack` / meshopt compression
+- generation of a region manifest containing names, colours, centroids and paths
+
+That final manifest was what made the website implementation clean. The browser never has to infer anything about the anatomy. It just receives a compact set of meshes and metadata prepared offline.
+
+In the end I exported **37 compressed GLB meshes** in a total payload of about **6 MB**. That is small enough to ship on a normal website while still being detailed enough to read as anatomy rather than as a generic blob.
+
+## What FreeSurfer thought was in there
+
+One of the nice things about neuroimaging software is that it rarely stops at geometry. FreeSurfer also leaves behind a lot of quantitative output.
+
+For this scan, the main tissue-compartment estimates were:
+
+- **cortical grey matter:** 520,783 mm³
+- **cerebral white matter:** 415,911 mm³
+- **subcortical grey matter:** 43,814 mm³
+- **ventricles + choroid plexus:** 16,358 mm³
+
+<BrainCompartmentChart client:visible items={brainCompartmentVolumes} />
+
+These numbers are useful partly because they give scale, and partly because they make clear that the final 3D widget is selective. The visible surface anatomy does not correspond one-to-one with the volumetric composition of the brain.
+
+The run also estimated a slight left-right cortical asymmetry:
+
+- left cortex: **262,938 mm³**
+- right cortex: **257,845 mm³**
+
+I would not over-interpret that on the basis of a single automated pipeline, but it is still interesting to see what a standard anatomical workflow chooses to measure and report.
+
+## Comparing the two segmentation approaches
+
+The atlas-based script and the FreeSurfer-based export route overlap on a number of deep structures: thalamus, caudate, putamen, hippocampus and amygdala. Because both pipelines generated volumes for those structures, I could compare them directly.
+
+<AtlasComparisonChart client:visible items={atlasVsFreesurferVolumes} />
+
+The important thing here is not which method is “right” in some absolute sense. The important thing is that both methods recover the same broad anatomy while disagreeing on some borders.
+
+That is normal.
+
+A segmentation is not a photograph of the truth. It is an estimate produced by a particular combination of:
+
+- voxel resolution
+- image contrast
+- atlas choice
+- registration quality
+- model assumptions
+- boundary definitions
+
+This is probably the most useful lesson from the whole project if you are new to medical image processing. Two pipelines can agree strongly on *what structure is present where* while disagreeing on *the exact edge of the structure*.
+
+## Turning the result into a website widget
+
+Once I had meshes and metadata, the browser part became a more conventional 3D graphics problem.
+
+The final widget is built with [Three.js](https://threejs.org/). The website receives precomputed anatomy and focuses only on presentation:
+
+- load compressed GLB meshes
+- place them according to precomputed centroids
+- use those centroids for explode animations and label anchors
+- render labels in screen space using HTML and SVG overlays
+- keep all medical-image processing offline
+
+That last point is the main architectural decision. The website does **not** do segmentation. It does not touch the NIfTI volume, the atlas registration, or the surface extraction. All of that happens offline in Python and FreeSurfer. By the time the data reaches the browser, it is already a compact collection of named anatomical meshes.
+
+That separation is what made the project practical. The expensive and domain-specific work stays offline. The website only has to be good at interaction, animation and rendering.
+
+## What I learned from doing it this way
+
+By the end of the project, the workflow looked something like this:
+
+1. receive a raw structural MRI as a NIfTI volume
+2. run FreeSurfer to reconstruct anatomy and generate cortical and subcortical segmentations
+3. write an atlas-based annotation script to inspect labelled anatomy quickly and generate region-level summaries
+4. write an export script to convert reconstructed anatomy into compact, named GLB meshes
+5. integrate those meshes into a Three.js scene designed for the web
+
+What made the project interesting was that each stage imposed a different definition of “good”.
+
+- For the MRI processing stage, *good* meant anatomically plausible.
+- For the scripting stage, *good* meant reproducible and inspectable.
+- For the mesh export stage, *good* meant lightweight without losing recognisability.
+- For the website stage, *good* meant readable, performant, and worth interacting with.
+
+That is why the final widget ended up feeling more substantial than a novelty render. It is sitting on top of a fairly complete little pipeline.
+
+## Further reading
+
+If you want to follow the same rabbit hole, these were the most useful references:
+
+- [FreeSurfer `recon-all` documentation](https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all)
+- [FreeSurfer cortical parcellation overview](https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation)
+- [NiBabel's guide to NIfTI images](https://nipy.org/nibabel/nifti_images.html)
+- [FSL atlas documentation / atlas index](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Atlases)
+- [ANTs](https://github.com/ANTsX/ANTs)
+- [Three.js](https://threejs.org/)
+
+## Conclusion
+
+The most satisfying part of this project was not the novelty of seeing my own brain in 3D. It was understanding how many transformations were required to get there.
+
+A research MRI scanner produced a raw structural volume. FreeSurfer reconstructed surfaces from it. An atlas-based script made the anatomy easier to inspect and compare. An export script turned the results into compact meshes. A website renderer then turned those meshes into an interactive object.
+
+That is a long pipeline for what ends up looking, on the surface, like a decorative widget.
+
+But that is exactly why I like it.
+
+[^1]: NiBabel's [NIfTI documentation](https://nipy.org/nibabel/nifti_images.html) is a good introduction to voxel arrays, affines, qforms and sforms.
+[^2]: The [FreeSurfer wiki](https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferWiki) and especially the [`recon-all` page](https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all) are the key references for understanding what the reconstruction pipeline is actually doing.
+[^3]: The atlas route used the Harvard-Oxford cortical and subcortical atlases distributed through FSL / Nilearn. The most useful general reference is the [FSL atlas index](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Atlases).

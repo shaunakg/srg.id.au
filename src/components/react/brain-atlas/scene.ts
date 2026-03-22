@@ -37,6 +37,12 @@ export interface BrainAtlasManifest {
   meshes: BrainAtlasRegion[];
 }
 
+export interface BrainAtlasLoadingProgress {
+  loaded: number;
+  total: number;
+  percent: number;
+}
+
 interface LabelHandle {
   box: HTMLDivElement;
   line: SVGLineElement;
@@ -69,7 +75,7 @@ interface BrainAtlasSceneOptions {
   meshBaseUrl: string;
   reducedMotion: boolean;
   getLabelHandle: (id: string) => LabelHandle | null;
-  onLoadingProgress: (progress: number) => void;
+  onLoadingProgress: (progress: BrainAtlasLoadingProgress) => void;
   onReady: () => void;
   onError: (message: string) => void;
 }
@@ -82,7 +88,7 @@ export class BrainAtlasScene {
   private readonly meshBaseUrl: string;
   private readonly reducedMotion: boolean;
   private readonly getLabelHandle: (id: string) => LabelHandle | null;
-  private readonly onLoadingProgress: (progress: number) => void;
+  private readonly onLoadingProgress: (progress: BrainAtlasLoadingProgress) => void;
   private readonly onReady: () => void;
   private readonly onError: (message: string) => void;
   private readonly scene = new THREE.Scene();
@@ -188,7 +194,11 @@ export class BrainAtlasScene {
   }
 
   async init(): Promise<void> {
-    this.onLoadingProgress(0);
+    this.onLoadingProgress({
+      loaded: 0,
+      total: this.manifest.meshes.length,
+      percent: 0,
+    });
     await this.loadEntries();
     if (this.disposed) {
       return;
@@ -434,8 +444,16 @@ export class BrainAtlasScene {
   private async loadEntries(): Promise<void> {
     const manager = new THREE.LoadingManager();
     manager.onProgress = (_url: string, loaded: number, total: number) => {
-      const progress = total > 0 ? Math.round((loaded / total) * 100) : 0;
-      this.onLoadingProgress(progress);
+      const fallbackTotal = this.manifest.meshes.length;
+      const safeTotal = total > 0 ? total : fallbackTotal;
+      const safeLoaded = Math.min(loaded, safeTotal);
+      const percent = safeTotal > 0 ? Math.round((safeLoaded / safeTotal) * 100) : 0;
+
+      this.onLoadingProgress({
+        loaded: safeLoaded,
+        total: safeTotal,
+        percent,
+      });
     };
 
     const loader = new GLTFLoader(manager);
@@ -463,7 +481,11 @@ export class BrainAtlasScene {
       throw error;
     }
 
-    this.onLoadingProgress(100);
+    this.onLoadingProgress({
+      loaded: this.manifest.meshes.length,
+      total: this.manifest.meshes.length,
+      percent: 100,
+    });
   }
 
   private buildEntry(entry: BrainAtlasRegion, root: THREE.Group): BrainEntry {
