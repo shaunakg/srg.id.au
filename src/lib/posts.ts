@@ -4,7 +4,7 @@ import { readingMinutes, slugifyTag } from './site';
 export type PostEntry = CollectionEntry<'posts'>;
 
 function shouldIncludeDraftPosts() {
-  return import.meta.env.DEV;
+  return import.meta.env.DEV && process.env.SHOW_DRAFTS === 'true';
 }
 
 export async function getAllPosts() {

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev --host",
+    "dev:drafts": "SHOW_DRAFTS=true astro dev --host",
     "build": "astro build",
     "preview": "astro preview --host",
     "deploy": "pnpm run build && wrangler deploy --config dist/server/wrangler.json",

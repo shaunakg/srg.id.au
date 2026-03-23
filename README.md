@@ -9,6 +9,12 @@ pnpm install
 pnpm run dev
 ```
 
+Draft posts are excluded by default so local output matches production. To preview drafts intentionally:
+
+```bash
+pnpm run dev:drafts
+```
+
 ## Quality checks
 
 ```bash
