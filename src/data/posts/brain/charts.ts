@@ -1,3 +1,8 @@
+import {
+  freesurferCorticalRegions,
+  type FreeSurferCorticalRegionDatum,
+} from './freesurfer';
+
 export interface RuntimeStageDatum {
   label: string;
   rawLabel: string;
@@ -12,11 +17,7 @@ export interface SingleValueDatum {
   color: string;
 }
 
-export interface ComparisonDatum {
-  label: string;
-  atlasMm3: number;
-  freesurferMm3: number;
-}
+export interface CorticalRegionDatum extends FreeSurferCorticalRegionDatum {}
 
 export const freesurferRuntimeHours = 3.78;
 
@@ -67,7 +68,7 @@ export const freesurferRuntimeStages: RuntimeStageDatum[] = [
     label: 'Expectation-Maximization registration',
     rawLabel: 'EM Registration',
     durationMinutes: 7.6,
-    startHours: 0.260,
+    startHours: 0.26,
     note: 'Performs an initial alignment of the scan to the atlas. This gives later segmentation steps a starting reference.',
   },
   {
@@ -102,7 +103,7 @@ export const freesurferRuntimeStages: RuntimeStageDatum[] = [
     label: 'Cortical ribbon mask',
     rawLabel: 'Cortical ribbon mask',
     durationMinutes: 3.4,
-    startHours: 3.420,
+    startHours: 3.42,
     note: 'Builds a mask for the cortical gray matter ribbon. It uses the white and pial surfaces to define cortical thickness boundaries.',
   },
 ];
@@ -130,55 +131,4 @@ export const brainCompartmentVolumes: SingleValueDatum[] = [
   },
 ];
 
-export const atlasVsFreesurferVolumes: ComparisonDatum[] = [
-  {
-    label: 'Thalamus (L)',
-    atlasMm3: 13533.75,
-    freesurferMm3: 5793.4,
-  },
-  {
-    label: 'Thalamus (R)',
-    atlasMm3: 11720.953125,
-    freesurferMm3: 6089.2,
-  },
-  {
-    label: 'Caudate (L)',
-    atlasMm3: 4384.96875,
-    freesurferMm3: 4013.6,
-  },
-  {
-    label: 'Caudate (R)',
-    atlasMm3: 4382.859375,
-    freesurferMm3: 4408.3,
-  },
-  {
-    label: 'Putamen (L)',
-    atlasMm3: 7689.515625,
-    freesurferMm3: 2912.7,
-  },
-  {
-    label: 'Putamen (R)',
-    atlasMm3: 7658.296875,
-    freesurferMm3: 3829.8,
-  },
-  {
-    label: 'Hippocampus (L)',
-    atlasMm3: 6381.703125,
-    freesurferMm3: 1054.5,
-  },
-  {
-    label: 'Hippocampus (R)',
-    atlasMm3: 6954.1875,
-    freesurferMm3: 2591.6,
-  },
-  {
-    label: 'Amygdala (L)',
-    atlasMm3: 2851.453125,
-    freesurferMm3: 457.3,
-  },
-  {
-    label: 'Amygdala (R)',
-    atlasMm3: 3577.921875,
-    freesurferMm3: 669.7,
-  },
-];
+export const freesurferTopCorticalRegions = freesurferCorticalRegions;

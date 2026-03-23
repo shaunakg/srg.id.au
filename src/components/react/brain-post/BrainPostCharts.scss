@@ -81,6 +81,10 @@
   height: 28rem;
 }
 
+.brain-post-chart__canvas--cortical {
+  height: 30rem;
+}
+
 .brain-post-chart__tooltip {
   padding: 0.72rem 0.82rem;
   border-radius: 0.95rem;
@@ -120,6 +124,10 @@
   .brain-post-chart__canvas--comparison {
     height: 26rem;
   }
+
+  .brain-post-chart__canvas--cortical {
+    height: 28rem;
+  }
 }
 
 @media (max-width: 720px) {
@@ -156,5 +164,9 @@
 
   .brain-post-chart__canvas--comparison {
     height: 25rem;
+  }
+
+  .brain-post-chart__canvas--cortical {
+    height: 26rem;
   }
 }

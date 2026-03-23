@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import './BrainPostCharts.scss';
-import type { ComparisonDatum, RuntimeStageDatum, SingleValueDatum } from '../../../data/posts/brain/charts';
+import type { CorticalRegionDatum, RuntimeStageDatum, SingleValueDatum } from '../../../data/posts/brain/charts';
 
 interface ChartFrameProps {
   title: string;
@@ -49,6 +49,10 @@ function formatCm3(value: number) {
 
 function formatIn3(value: number) {
   return `${(value / 16387.064).toFixed(2)} in³`;
+}
+
+function formatMm2(value: number) {
+  return `${Math.round(value).toLocaleString()} mm²`;
 }
 
 function roundedRightRectPath(x: number, y: number, width: number, height: number, radius: number) {
@@ -90,21 +94,41 @@ function CompartmentTooltip({ active, payload }: { active?: boolean; payload?: A
   );
 }
 
-function ComparisonTooltip({
+function CorticalTooltip({
   active,
   payload,
+  metric,
 }: {
   active?: boolean;
-  payload?: Array<{ payload: ComparisonDatum }>;
+  payload?: Array<{ payload: CorticalRegionDatum & Record<string, number> }>;
+  metric: 'volume' | 'area' | 'thickness';
 }) {
   if (!active || !payload?.length) return null;
   const datum = payload[0].payload;
   return (
     <div className="brain-post-chart__tooltip">
       <strong>{datum.label}</strong>
-      <div>Atlas: {formatCm3(datum.atlasMm3)}</div>
-      <div>FreeSurfer: {formatCm3(datum.freesurferMm3)}</div>
-      <div>Difference: {formatCm3(Math.abs(datum.atlasMm3 - datum.freesurferMm3))}</div>
+      {metric === 'volume' ? (
+        <>
+          <div>Left: {formatCm3(datum.leftGrayMm3)}</div>
+          <div>Right: {formatCm3(datum.rightGrayMm3)}</div>
+          <div>Total: {formatCm3(datum.totalGrayMm3)}</div>
+        </>
+      ) : null}
+      {metric === 'area' ? (
+        <>
+          <div>Left: {formatMm2(datum.leftAreaMm2)}</div>
+          <div>Right: {formatMm2(datum.rightAreaMm2)}</div>
+          <div>Total: {formatMm2(datum.totalAreaMm2)}</div>
+        </>
+      ) : null}
+      {metric === 'thickness' ? (
+        <>
+          <div>Left: {datum.leftThicknessMm.toFixed(2)} mm</div>
+          <div>Right: {datum.rightThicknessMm.toFixed(2)} mm</div>
+          <div>Mean: {datum.meanThicknessMm.toFixed(2)} mm</div>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -241,37 +265,44 @@ export function BrainCompartmentChart({ items }: { items: SingleValueDatum[] }) 
   );
 }
 
-export function AtlasComparisonChart({ items }: { items: ComparisonDatum[] }) {
-  const [sortMode, setSortMode] = useState<'anatomical' | 'difference'>('anatomical');
+export function FreeSurferCorticalRegionsChart({ items }: { items: CorticalRegionDatum[] }) {
+  const [metric, setMetric] = useState<'volume' | 'area' | 'thickness'>('volume');
 
   const data = useMemo(() => {
     const next = [...items];
-    if (sortMode === 'difference') {
-      next.sort((a, b) => Math.abs(b.atlasMm3 - b.freesurferMm3) - Math.abs(a.atlasMm3 - a.freesurferMm3));
-    }
-    return next.map((item) => ({
+    next.sort((a, b) => {
+      if (metric === 'volume') return b.totalGrayMm3 - a.totalGrayMm3;
+      if (metric === 'area') return b.totalAreaMm2 - a.totalAreaMm2;
+      return b.meanThicknessMm - a.meanThicknessMm;
+    });
+    return next.slice(0, 10).map((item) => ({
       ...item,
-      atlasCm3: Number((item.atlasMm3 / 1000).toFixed(2)),
-      freesurferCm3: Number((item.freesurferMm3 / 1000).toFixed(2)),
+      leftDisplay: metric === 'volume' ? Number((item.leftGrayMm3 / 1000).toFixed(2)) : metric === 'area' ? Math.round(item.leftAreaMm2) : Number(item.leftThicknessMm.toFixed(2)),
+      rightDisplay: metric === 'volume' ? Number((item.rightGrayMm3 / 1000).toFixed(2)) : metric === 'area' ? Math.round(item.rightAreaMm2) : Number(item.rightThicknessMm.toFixed(2)),
     }));
-  }, [items, sortMode]);
+  }, [items, metric]);
+
+  const unit = metric === 'volume' ? ' cm³' : metric === 'area' ? ' mm²' : ' mm';
 
   return (
     <ChartFrame
-      title="How did the atlas-based labels compare with FreeSurfer?"
+      title="Which named cortical regions took up the most space?"
       controls={
         <>
-          <ChartButton active={sortMode === 'anatomical'} onClick={() => setSortMode('anatomical')}>
-            Anatomical order
+          <ChartButton active={metric === 'volume'} onClick={() => setMetric('volume')}>
+            Gray volume
           </ChartButton>
-          <ChartButton active={sortMode === 'difference'} onClick={() => setSortMode('difference')}>
-            Biggest disagreement first
+          <ChartButton active={metric === 'area'} onClick={() => setMetric('area')}>
+            Surface area
+          </ChartButton>
+          <ChartButton active={metric === 'thickness'} onClick={() => setMetric('thickness')}>
+            Thickness
           </ChartButton>
         </>
       }
     >
-      <div className="brain-post-chart__canvas brain-post-chart__canvas--comparison">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
+      <div className="brain-post-chart__canvas brain-post-chart__canvas--cortical">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={260}>
           <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 18 }} barGap={2}>
             <CartesianGrid strokeDasharray="2 6" horizontal={false} stroke="rgba(85,96,85,0.14)" />
             <XAxis
@@ -279,20 +310,20 @@ export function AtlasComparisonChart({ items }: { items: ComparisonDatum[] }) {
               tick={{ fill: 'rgba(10,10,10,0.56)', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
-              unit=" cm³"
+              unit={unit}
             />
             <YAxis
               type="category"
               dataKey="label"
-              width={122}
+              width={168}
               tick={{ fill: '#0a0a0a', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip cursor={{ fill: 'rgba(85,96,85,0.06)' }} content={<ComparisonTooltip />} />
+            <Tooltip cursor={{ fill: 'rgba(85,96,85,0.06)' }} content={<CorticalTooltip metric={metric} />} />
             <Legend wrapperStyle={{ color: 'rgba(10,10,10,0.72)', fontSize: 12, paddingTop: 6 }} />
-            <Bar dataKey="atlasCm3" name="Harvard–Oxford atlas pipeline" fill="#8e6db0" radius={[0, 999, 999, 0]} />
-            <Bar dataKey="freesurferCm3" name="FreeSurfer aseg" fill="#cf6e5f" radius={[0, 999, 999, 0]} />
+            <Bar dataKey="leftDisplay" name="Left hemisphere" fill="#8e6db0" radius={[0, 999, 999, 0]} />
+            <Bar dataKey="rightDisplay" name="Right hemisphere" fill="#cf6e5f" radius={[0, 999, 999, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

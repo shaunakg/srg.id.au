@@ -1,0 +1,172 @@
+{
+  "brainvol": {
+    "BrainSegVol": 1057298.0,
+    "BrainSegVolNotVent": 1037119.0,
+    "SupraTentorialVol": 998305.0,
+    "SupraTentorialVolNotVent": 978126.0,
+    "SubCortGrayVol": 43814.0,
+    "lhCortexVol": 262937.7831287038,
+    "rhCortexVol": 257845.11518170903,
+    "CortexVol": 520782.8983104129,
+    "TotalGrayVol": 613949.8983104129,
+    "lhCerebralWhiteMatterVol": 208757.0,
+    "rhCerebralWhiteMatterVol": 207154.0,
+    "CerebralWhiteMatterVol": 415911.0,
+    "MaskVol": 1515454.0,
+    "SupraTentorialVolNotVentVox": 978126.0,
+    "BrainSegVolNotVentSurf": 1037119.0,
+    "VentricleChoroidVol": 16358.0
+  },
+  "topCorticalRegions": [
+    {
+      "label": "superiorfrontal",
+      "leftGrayMm3": 29865.0,
+      "rightGrayMm3": 26717.0,
+      "totalGrayMm3": 56582.0,
+      "leftAreaMm2": 8477.0,
+      "rightAreaMm2": 7501.0,
+      "totalAreaMm2": 15978.0,
+      "leftThicknessMm": 2.946,
+      "rightThicknessMm": 2.954,
+      "meanThicknessMm": 2.95
+    },
+    {
+      "label": "rostralmiddlefrontal",
+      "leftGrayMm3": 17718.0,
+      "rightGrayMm3": 18870.0,
+      "totalGrayMm3": 36588.0,
+      "leftAreaMm2": 5949.0,
+      "rightAreaMm2": 6333.0,
+      "totalAreaMm2": 12282.0,
+      "leftThicknessMm": 2.526,
+      "rightThicknessMm": 2.511,
+      "meanThicknessMm": 2.5185
+    },
+    {
+      "label": "superiorparietal",
+      "leftGrayMm3": 15946.0,
+      "rightGrayMm3": 16600.0,
+      "totalGrayMm3": 32546.0,
+      "leftAreaMm2": 5897.0,
+      "rightAreaMm2": 6168.0,
+      "totalAreaMm2": 12065.0,
+      "leftThicknessMm": 2.317,
+      "rightThicknessMm": 2.352,
+      "meanThicknessMm": 2.3345000000000002
+    },
+    {
+      "label": "precentral",
+      "leftGrayMm3": 15664.0,
+      "rightGrayMm3": 14806.0,
+      "totalGrayMm3": 30470.0,
+      "leftAreaMm2": 4955.0,
+      "rightAreaMm2": 4798.0,
+      "totalAreaMm2": 9753.0,
+      "leftThicknessMm": 2.733,
+      "rightThicknessMm": 2.749,
+      "meanThicknessMm": 2.741
+    },
+    {
+      "label": "inferiorparietal",
+      "leftGrayMm3": 13314.0,
+      "rightGrayMm3": 15864.0,
+      "totalGrayMm3": 29178.0,
+      "leftAreaMm2": 4353.0,
+      "rightAreaMm2": 5158.0,
+      "totalAreaMm2": 9511.0,
+      "leftThicknessMm": 2.608,
+      "rightThicknessMm": 2.619,
+      "meanThicknessMm": 2.6135
+    },
+    {
+      "label": "supramarginal",
+      "leftGrayMm3": 15651.0,
+      "rightGrayMm3": 13059.0,
+      "totalGrayMm3": 28710.0,
+      "leftAreaMm2": 4962.0,
+      "rightAreaMm2": 4291.0,
+      "totalAreaMm2": 9253.0,
+      "leftThicknessMm": 2.654,
+      "rightThicknessMm": 2.657,
+      "meanThicknessMm": 2.6555
+    },
+    {
+      "label": "lateraloccipital",
+      "leftGrayMm3": 15175.0,
+      "rightGrayMm3": 13529.0,
+      "totalGrayMm3": 28704.0,
+      "leftAreaMm2": 5582.0,
+      "rightAreaMm2": 4902.0,
+      "totalAreaMm2": 10484.0,
+      "leftThicknessMm": 2.297,
+      "rightThicknessMm": 2.367,
+      "meanThicknessMm": 2.332
+    },
+    {
+      "label": "superiortemporal",
+      "leftGrayMm3": 13701.0,
+      "rightGrayMm3": 12025.0,
+      "totalGrayMm3": 25726.0,
+      "leftAreaMm2": 4442.0,
+      "rightAreaMm2": 3848.0,
+      "totalAreaMm2": 8290.0,
+      "leftThicknessMm": 2.621,
+      "rightThicknessMm": 2.635,
+      "meanThicknessMm": 2.628
+    },
+    {
+      "label": "precuneus",
+      "leftGrayMm3": 10728.0,
+      "rightGrayMm3": 11620.0,
+      "totalGrayMm3": 22348.0,
+      "leftAreaMm2": 3706.0,
+      "rightAreaMm2": 4128.0,
+      "totalAreaMm2": 7834.0,
+      "leftThicknessMm": 2.56,
+      "rightThicknessMm": 2.544,
+      "meanThicknessMm": 2.552
+    },
+    {
+      "label": "postcentral",
+      "leftGrayMm3": 10767.0,
+      "rightGrayMm3": 10272.0,
+      "totalGrayMm3": 21039.0,
+      "leftAreaMm2": 4370.0,
+      "rightAreaMm2": 4235.0,
+      "totalAreaMm2": 8605.0,
+      "leftThicknessMm": 2.167,
+      "rightThicknessMm": 2.152,
+      "meanThicknessMm": 2.1595
+    },
+    {
+      "label": "insula",
+      "leftGrayMm3": 10277.0,
+      "rightGrayMm3": 9136.0,
+      "totalGrayMm3": 19413.0,
+      "leftAreaMm2": 3725.0,
+      "rightAreaMm2": 2942.0,
+      "totalAreaMm2": 6667.0,
+      "leftThicknessMm": 2.67,
+      "rightThicknessMm": 2.908,
+      "meanThicknessMm": 2.7889999999999997
+    },
+    {
+      "label": "middletemporal",
+      "leftGrayMm3": 10386.0,
+      "rightGrayMm3": 8789.0,
+      "totalGrayMm3": 19175.0,
+      "leftAreaMm2": 3138.0,
+      "rightAreaMm2": 2929.0,
+      "totalAreaMm2": 6067.0,
+      "leftThicknessMm": 2.412,
+      "rightThicknessMm": 2.44,
+      "meanThicknessMm": 2.426
+    }
+  ],
+  "hemisphereMetrics": {
+    "leftSurfaceAreaMm2": 88941.7,
+    "rightSurfaceAreaMm2": 87280.4,
+    "leftMeanThicknessMm": 2.53174,
+    "rightMeanThicknessMm": 2.54403
+  }
+}
