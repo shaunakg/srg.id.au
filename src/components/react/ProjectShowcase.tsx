@@ -229,7 +229,7 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
               >
                 <span className="project-card-image">
                   <img
-                    src={`/${project.image}`}
+                    src={project.image}
                     alt={project.alt}
                     width={project.width}
                     height={project.height}
@@ -268,7 +268,7 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
               rel={external ? 'noopener noreferrer' : undefined}
             >
               <img
-                src={`/${project.image}`}
+                src={project.image}
                 alt={project.alt}
                 width={project.width}
                 height={project.height}

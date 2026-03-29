@@ -1,10 +1,20 @@
 [
   {
+    "title": "Researchinator",
+    "href": "https://researchinator.srg.id.au/",
+    "kicker": "research project workbench",
+    "summary": "lets you search through over 2000 student research projects with semantic search.",
+    "image": "https://researchinator.srg.id.au/og-image.png",
+    "alt": "Researchinator social preview image.",
+    "width": 1200,
+    "height": 630
+  },
+  {
     "title": "srg.id.au",
     "href": "https://srg.id.au/",
     "kicker": "portfolio",
     "summary": "is my personal portfolio site, built with Astro and hosted on Cloudflare Pages.",
-    "image": "project-previews/this-site.png",
+    "image": "/project-previews/this-site.png",
     "alt": "This site's social preview image.",
     "width": 1200,
     "height": 630
@@ -14,7 +24,7 @@
     "href": "/posts/scalpel/",
     "kicker": "medical education",
     "summary": "is a surgical rotation assistant with rapid procedure guides, anatomy references, and quick answers.",
-    "image": "project-previews/scalpel.png",
+    "image": "/project-previews/scalpel.png",
     "alt": "Scalpel preview image.",
     "width": 1200,
     "height": 628
@@ -24,7 +34,7 @@
     "href": "/posts/building-cardz/",
     "kicker": "machine learning",
     "summary": "was a quiz-generation app that turned textbooks into study decks with a single click.",
-    "image": "project-previews/cardz.webp",
+    "image": "/project-previews/cardz.webp",
     "alt": "Cardz flashcard interface preview.",
     "width": 1200,
     "height": 627
@@ -34,7 +44,7 @@
     "href": "https://github.com/shaunakg/sixtysecondshell",
     "kicker": "programming education",
     "summary": "was a timed terminal challenge where users had sixty seconds to experiment with more than 100 programming languages.",
-    "image": "project-previews/sixtysecondshell.png",
+    "image": "/project-previews/sixtysecondshell.png",
     "alt": "SixtySecondShell repository social preview.",
     "width": 1200,
     "height": 627
@@ -44,7 +54,7 @@
     "href": "https://s-g.notion.site/DevPlatform-Internal-Development-Platform-a4b85d9675c4435e9b90bfb85d4f0317",
     "kicker": "internal tooling",
     "summary": "was a browser-based cloud development environment with provisioning, access control, and built-in IDE workflows.",
-    "image": "project-previews/devplatform.png",
+    "image": "/project-previews/devplatform.png",
     "alt": "DevPlatform management console.",
     "width": 1200,
     "height": 630
@@ -54,7 +64,7 @@
     "href": "https://s-g.notion.site/Ultramarine-Real-time-fully-encrypted-database-less-chat-791250f124234581b2cb3248c331aba0",
     "kicker": "encrypted chat",
     "summary": "was an ephemeral end-to-end encrypted chat tool that worked without a database and left no messages behind.",
-    "image": "project-previews/ultramarine.png",
+    "image": "/project-previews/ultramarine.png",
     "alt": "Ultramarine encrypted chat interface.",
     "width": 1200,
     "height": 630
@@ -64,7 +74,7 @@
     "href": "/notion-reading-list/",
     "kicker": "notion integration",
     "summary": "lets you maintain Notion reading lists by automatically fetching book covers and metadata.",
-    "image": "project-previews/notion-reading-list.png",
+    "image": "/project-previews/notion-reading-list.png",
     "alt": "Notion Reading List integration preview.",
     "width": 1200,
     "height": 630
