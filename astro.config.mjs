@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import mdx from '@astrojs/mdx';
+import { satteri } from '@astrojs/markdown-satteri';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import remarkGfm from 'remark-gfm';
 
 const argv = process.argv.join(' ');
 const lifecycle = process.env.npm_lifecycle_event ?? '';
@@ -16,13 +16,13 @@ export default defineConfig({
     imageService: 'compile',
     prerenderEnvironment: 'node',
   }),
-  integrations: [mdx({ remarkPlugins: [remarkGfm] }), react(), sitemap()],
+  integrations: [mdx(), react(), sitemap()],
   prefetch: false,
   image: {
     domains: ['cdn.srg.id.au'],
   },
   markdown: {
-    remarkPlugins: [remarkGfm],
+    processor: satteri(),
     shikiConfig: {
       theme: 'solarized-light',
     },
